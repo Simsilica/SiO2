@@ -36,6 +36,7 @@
 
 package com.simsilica.sim;
 
+import com.simsilica.event.ErrorEvent;
 import com.simsilica.event.EventBus;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -226,13 +227,19 @@ public class GameSystemManager {
      *  normal update loop.
      */
     public void update() {
-        // Update the step time...
-        long time = System.nanoTime(); 
-        stepTime.update(time);
-        
-        // Update the systems.
-        for( GameSystem sys : getArray() ) {
-            sys.update(stepTime);
+        try {
+            // Update the step time...
+            long time = System.nanoTime(); 
+            stepTime.update(time);
+            
+            // Update the systems.
+            for( GameSystem sys : getArray() ) {
+                sys.update(stepTime);
+            }
+        } catch( Throwable t ) {
+            // Treat this as a fatal error... systems should
+            // handle their own errors otherwise
+            EventBus.publish(ErrorEvent.fatalError, new ErrorEvent(t));
         }
     } 
 }
