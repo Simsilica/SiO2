@@ -90,7 +90,8 @@ public class EventBus {
         if( log.isTraceEnabled() ) {
             log.trace("publishEvent(" + type + ", " + event + ")");
         }
-    
+
+        System.out.println("listeners for type:" + type + " = " + getListeners(type));
         for( EventListener l : getListeners(type).getArray() ) {
             try {
                 l.newEvent(type, event);
@@ -215,10 +216,16 @@ public class EventBus {
     
     private class ListenerList {
         
-        private List<EventListener> list = new ArrayList<>();
+        private final List<EventListener> list = new ArrayList<>();
         private volatile EventListener[] array = null;  
  
         public ListenerList() {
+            resetArray();
+        }
+        
+        protected final void resetArray() {
+            // Presumes we already have the lock
+            array = list.toArray(array != null ? array : new EventListener[list.size()]);
         }
         
         protected final EventListener[] getArray() {
@@ -232,7 +239,7 @@ public class EventBus {
                 list.add(listener);
                 
                 // Implement 'copy on write'
-                array = list.toArray(array != null ? array : new EventListener[list.size()]);
+                resetArray();
             } finally {
                 lock.unlock();
             }
@@ -245,7 +252,7 @@ public class EventBus {
                 list.remove(listener);
                 
                 // Implement 'copy on write'
-                array = list.toArray(array != null ? array : new EventListener[list.size()]);
+                resetArray();
             } finally {
                 lock.unlock();
             }
