@@ -67,7 +67,7 @@ public class GameLoop {
 
     /**
      *  Starts the background game loop thread and initializes and
-     *  starts the game system manager (if it hasn't been initialized already).
+     *  starts the game system manager (if it hasn't been initialized or started already).
      *  The systems will be initialized and started on the game loop background
      *  thread.
      */
@@ -114,7 +114,9 @@ public class GameLoop {
             if( !systems.isInitialized() ) {
                 systems.initialize();
             }
-            systems.start();
+            if( !systems.isStarted() ) {
+                systems.start();
+            }
             
             long lastTime = System.nanoTime();
             while( go.get() ) {
