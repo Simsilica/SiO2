@@ -145,12 +145,39 @@ public class EventBus {
         getListeners(type).remove(listener);
     }  
  
+    protected Method findMethod( Class c, EventType type ) throws NoSuchMethodException {
+    
+        // First try the 'on' + name version
+        String name1 = "on" + type.getName(); 
+        try {
+            return c.getDeclaredMethod(name1, type.getEventClass());
+        } catch( NoSuchMethodException e ) {
+            // That's ok, we handle the miss later 
+        }
+        
+        // Else try with the direct name, lower-cased appropriately
+        String name2 = type.getName();
+        if( Character.isUpperCase(name2.charAt(0)) && Character.isLowerCase(name2.charAt(1)) ) {
+            name2 = Character.toLowerCase(name2.charAt(0)) + name2.substring(1);
+        }
+        try {       
+            return c.getDeclaredMethod(name2, type.getEventClass());
+        } catch( NoSuchMethodException e ) {
+            // That's ok, we handle the miss later 
+        }
+               
+        throw new NoSuchMethodException(type.getName() + "." + name1 + "(" + type.getEventClass().getName() + ")"
+                                        + " or " + type.getName() + "." + name2 + "(" + type.getEventClass().getName() + ")");  
+    }
+ 
     /**
      *  Adds a generic listener that will have its events delivered through
      *  reflection based on the event names.  For example, if the expected
      *  event type is ErrorEvent.fatalError then the event type name is
-     *  "FatalError" and the expected method name will be "fatalError" with
-     *  a single argument that is the event.
+     *  "FatalError" and the expected method name will be either "onFatalError" or
+     *  "fatalError" with a single argument that is the event.  (Note: It is ok if the
+     *  method is not public if the current security settings allow overriding
+     *  method accessibility.)
      *
      *  @throws IllegalArgumentException is any of the dispatch methods is
      *           missing.
@@ -158,13 +185,11 @@ public class EventBus {
     public void addListener( Object listener, EventType... types ) {    
         Class c = listener.getClass();
         for( EventType type : types ) {
-            String name = type.getName();
-            if( Character.isUpperCase(name.charAt(0)) && Character.isLowerCase(name.charAt(1)) ) {
-                name = Character.toLowerCase(name.charAt(0)) + name.substring(1);
-            }
- 
             try {           
-                Method m = c.getMethod(name, type.getEventClass());
+                Method m = findMethod(c, type); 
+                if( !m.isAccessible() ) {
+                    m.setAccessible(true);
+                }
                 getListeners(type).add(new MethodDispatcher(listener, m));
             } catch( NoSuchMethodException e ) {
                 throw new IllegalArgumentException("Event method not found for:" + type + " on object:" + listener, e);
