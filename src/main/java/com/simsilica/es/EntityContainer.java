@@ -72,6 +72,7 @@ public abstract class EntityContainer<T> {
     static Logger log = LoggerFactory.getLogger(EntityContainer.class);
     
     private EntityData ed;
+    private ComponentFilter filter;
     private Class<? extends EntityComponent>[] componentTypes;
     private EntitySet entities;
     private T[] array;
@@ -79,9 +80,14 @@ public abstract class EntityContainer<T> {
     private Class parameter;
     
     protected EntityContainer( EntityData ed, Class<? extends EntityComponent>... componentTypes ) {
-        this.ed = ed;
-        this.componentTypes = componentTypes;
+        this(ed, null, componentTypes);
+    }
  
+    protected EntityContainer( EntityData ed, ComponentFilter filter, Class<? extends EntityComponent>... componentTypes ) {
+        this.ed = ed;
+        this.filter = filter;
+        this.componentTypes = componentTypes;
+        
         // Find out what the type parameter is       
         for( Type t = getClass().getGenericSuperclass(); t != null; ) {
             if( t instanceof ParameterizedType ) {
@@ -95,6 +101,16 @@ public abstract class EntityContainer<T> {
             } else {            
                 t = null;
             }
+        }
+    }
+
+    protected void setFilter( ComponentFilter filter ) {
+        if( this.filter == filter ) {
+            return;
+        }
+        this.filter = filter;
+        if( entities != null ) {
+            entities.resetFilter(filter);
         }
     }
 
@@ -173,7 +189,7 @@ public abstract class EntityContainer<T> {
     }
     
     public void start() {
-        this.entities = ed.getEntities(componentTypes);
+        this.entities = ed.getEntities(filter, componentTypes);
         entities.applyChanges();
         addObjects(entities);   
     }
