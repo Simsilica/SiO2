@@ -45,6 +45,7 @@ package com.simsilica.sim;
 public abstract class AbstractGameSystem implements GameSystem {
 
     private GameSystemManager parent;
+    private boolean initialized = false;
     
     protected AbstractGameSystem() {
     }
@@ -59,13 +60,26 @@ public abstract class AbstractGameSystem implements GameSystem {
 
     @Override
     public final void initialize( GameSystemManager parent ) {
+        if( initialized ) {
+            return;
+        }
         this.parent = parent;
         initialize();
+        initialized = true;
     }
-    
+ 
+    @Override
+    public boolean isInitialized() {
+        return initialized;
+    }
+
     @Override
     public final void terminate( GameSystemManager parent ) {
+        if( !initialized ) {
+            return;
+        }
         terminate();
+        initialized = false;
     }
     
     protected abstract void initialize();

@@ -49,6 +49,11 @@ public interface GameSystem {
      *  system is first added to an initialized game system manager.
      */
     public void initialize( GameSystemManager parent );
+ 
+    /**
+     *  Returns true if the system has been initialized.
+     */
+    public boolean isInitialized();
     
     /**
      *  Called when the game system manager is started or when the system
