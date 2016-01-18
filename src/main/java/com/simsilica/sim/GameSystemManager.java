@@ -41,6 +41,8 @@ import com.simsilica.event.EventBus;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *  Manages the life-cycle of a set of GameSystems.  GameSystems can
@@ -62,11 +64,14 @@ import java.util.concurrent.Future;
  */
 public class GameSystemManager {
  
+    static Logger log = LoggerFactory.getLogger(GameSystemManager.class);
+ 
+    enum State { Terminated, Initializing, Initialized, Starting, Started, Stopping, Stopped, Terminating };
+ 
+    private State state = State.Terminated; 
     private final Map<Class, Object> index = new HashMap<>();
     private final List<GameSystem> systems = new ArrayList<>();
     private GameSystem[] systemArray = null;
-    private boolean initialized;
-    private boolean started;
     private final SimTime stepTime = new SimTime();
     private final SimEvent simEvent = new SimEvent(this); // can reuse it
  
@@ -96,71 +101,107 @@ public class GameSystemManager {
     }
  
     public void initialize() {
-        if( initialized ) {
+        if( state != State.Terminated ) {
             throw new RuntimeException("Already initialized.");
         }
+        state = State.Initializing;
         EventBus.publish(SimEvent.simInitializing, simEvent);
         for( GameSystem sys : getArray() ) {
+            if( log.isTraceEnabled() ) {
+                log.trace("initializing:" + sys);
+            }
             sys.initialize(this);
         }
-        this.initialized = true;        
+        state = State.Initialized;
         EventBus.publish(SimEvent.simInitialized, simEvent);
     }
     
     public boolean isInitialized() {
-        return initialized;
+        switch( state ) {
+            case Initialized:
+            case Starting:
+            case Started:
+            case Stopping:
+            case Stopped:
+                return true;
+            default:
+                return false;
+        }
+    }
+ 
+    public boolean isStarted() {
+        switch( state ) {
+            case Started:
+                return true;
+            default:
+                return false;
+        }
     }
     
     public void terminate() {
-        if( !initialized ) {
-            return;
+        if( !isInitialized() ) {
+            throw new RuntimeException("Not initialized");
         }
+        state = State.Terminating;
         EventBus.publish(SimEvent.simTerminating, simEvent);
         for( GameSystem sys : getArray() ) {
+            if( log.isTraceEnabled() ) {
+                log.trace("terminating:" + sys);
+            }
             sys.terminate(this);
         }
-        this.initialized = false;
+        state = State.Terminated;
         EventBus.publish(SimEvent.simTerminated, simEvent);
     }
  
     public void start() {
-        if( !initialized ) {
+        if( !isInitialized() ) {
             throw new RuntimeException("Not initialized");
         }
-        if( started ) {
+        if( isStarted() ) {
             return;
         }
+        state = State.Starting;
         EventBus.publish(SimEvent.simStarting, simEvent);
         for( GameSystem sys : getArray() ) {
+            if( log.isTraceEnabled() ) {
+                log.trace("starting:" + sys);
+            }
             sys.start();
         }
-        this.started = true;
+        state = State.Started;
         EventBus.publish(SimEvent.simStarted, simEvent);
     }
  
-    public boolean isStarted() {
-        return started;
-    }
-    
     public void stop() {
-        if( !started ) {
+        if( !isStarted() ) {
             return;
         }
+        state = State.Stopping;
         EventBus.publish(SimEvent.simStopping, simEvent);
         for( GameSystem sys : getArray() ) {
+            if( log.isTraceEnabled() ) {
+                log.trace("stopping:" + sys);
+            }
             sys.stop();
         }
-        this.started = false;
+        state = State.Stopped;
         EventBus.publish(SimEvent.simStopped, simEvent);
     }
  
     protected void attachSystem( GameSystem system ) {
         systems.add(system);
         systemArray = null; 
-        if( initialized ) {
+        if( isInitialized() || state == State.Initializing ) {
+            if( log.isTraceEnabled() ) {
+                log.trace("initializing:" + system);
+            }
             system.initialize(this);
         }
-        if( started ) {
+        if( isStarted() || state == State.Starting ) {
+            if( log.isTraceEnabled() ) {
+                log.trace("starting:" + system);
+            }
             system.start();
         }  
     } 
@@ -168,10 +209,16 @@ public class GameSystemManager {
     protected void detachSystem( GameSystem system ) {
         systems.remove(system);
         systemArray = null;   
-        if( started ) {
+        if( isStarted() && state != State.Stopping ) {
+            if( log.isTraceEnabled() ) {
+                log.trace("stopping:" + system);
+            }
             system.stop();
         }
-        if( initialized ) {
+        if( isInitialized() && state != State.Terminating ) {
+            if( log.isTraceEnabled() ) {
+                log.trace("terminating:" + system);
+            }
             system.terminate(this);
         }
     } 
