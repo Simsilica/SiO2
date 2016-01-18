@@ -91,7 +91,7 @@ public class EventBus {
             log.trace("publishEvent(" + type + ", " + event + ")");
         }
 
-        System.out.println("listeners for type:" + type + " = " + getListeners(type));
+        //System.out.println("listeners for type:" + type + " = " + getListeners(type));
         for( EventListener l : getListeners(type).getArray() ) {
             try {
                 l.newEvent(type, event);
