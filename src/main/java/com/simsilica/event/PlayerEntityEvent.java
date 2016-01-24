@@ -121,10 +121,17 @@ public class PlayerEntityEvent {
         this.connection = connection;
     }
  
+    /**
+     *  Returns the player entity associated with this event.
+     */
     public EntityId getPlayer() {
         return player;
     }   
  
+    /**
+     *  On a multiplayer server, this returns the connection associated with
+     *  this player entity event.  In single player, this returns null.
+     */
     public HostedConnection getConnection() {
         return connection;
     }   

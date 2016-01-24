@@ -76,9 +76,58 @@ public class EventBus {
     /**
      *  Publishes the specified event to the event bus, delivering it to 
      *  all listeners registered for the particular type.
+     *
+     *  <p>This is the same as calling EventBus.getInstance().publishEvent(type, event)</p>    
      */
     public static <E> void publish( EventType<E> type, E event ) {
-        getInstance().publishEvent( type, event ); 
+        getInstance().publishEvent(type, event); 
+    }
+
+    /**
+     *  Adds a generic listener that will have its events delivered through
+     *  reflection based on the event names.  For example, if the expected
+     *  event type is ErrorEvent.fatalError then the event type name is
+     *  "FatalError" and the expected method name will be either "onFatalError" or
+     *  "fatalError" with a single argument that is the event.  (Note: It is ok if the
+     *  method is not public if the current security settings allow overriding
+     *  method accessibility.)
+     *
+     *  <p>This is the same as calling EventBus.getInstance().addListenerMethods(listener, types)</p>    
+     *
+     *  @throws IllegalArgumentException is any of the dispatch methods is
+     *           missing.
+     */
+    public static void addListener( Object listener, EventType... types ) {
+        getInstance().addListenerMethods(listener, types);
+    }
+
+    /**
+     *  Reverses the generic addListener() method by removing the specified
+     *  listener from any of the specified registered types.
+     *
+     *  <p>This is the same as calling EventBus.getInstance().renmoveListenerMethods(listener, types)</p>    
+     */   
+    public static void removeListener( Object listener, EventType... types ) {
+        getInstance().removeListenerMethods(listener, types);
+    }
+
+    /**
+     *  Adds a listener object that will be notified about events of the specified
+     *  type.
+     *
+     *  <p>This is the same as calling EventBus.getInstance().addEventListener(type, listener)</p>    
+     */
+    public <E> void addListener( EventType<E> type, EventListener<E> listener ) {
+        getInstance().addEventListener(type, listener);
+    }
+    
+    /**
+     *  Removes a listener object that was previously registered with addListener().
+     *
+     *  <p>This is the same as calling EventBus.getInstance().removeEventListener(type, listener)</p>    
+     */
+    public <E> void removeListener( EventType<E> type, EventListener<E> listener ) {
+        getInstance().removeEventListener(type, listener);
     }
     
     /**
@@ -137,11 +186,11 @@ public class EventBus {
         return list;            
     }
 
-    public <E> void addListener( EventType<E> type, EventListener<E> listener ) {
+    public <E> void addEventListener( EventType<E> type, EventListener<E> listener ) {
         getListeners(type).add(listener);
     }
     
-    public <E> void removeListener( EventType<E> type, EventListener<E> listener ) {
+    public <E> void removeEventListener( EventType<E> type, EventListener<E> listener ) {
         getListeners(type).remove(listener);
     }  
  
@@ -182,7 +231,7 @@ public class EventBus {
      *  @throws IllegalArgumentException is any of the dispatch methods is
      *           missing.
      */
-    public void addListener( Object listener, EventType... types ) {    
+    public void addListenerMethods( Object listener, EventType... types ) {    
         Class c = listener.getClass();
         for( EventType type : types ) {
             try {           
@@ -198,10 +247,10 @@ public class EventBus {
     }
  
     /**
-     *  Reverses the generic addListener() method by removing the specified
+     *  Reverses the generic addListenerMethods() method by removing the specified
      *  listener from any of the specified registered types.
      */   
-    public void removeListener( Object listener, EventType... types ) {
+    public void removeListenerMethods( Object listener, EventType... types ) {
         for( EventType type : types ) {
             ListenerList listeners = getListeners(type);
             for( EventListener l : listeners.getArray() ) {
@@ -210,7 +259,7 @@ public class EventBus {
                 }
                 MethodDispatcher md = (MethodDispatcher)l;
                 if( md.delegate == listener || md.delegate.equals(listener) ) {
-                    removeListener(type, md);
+                    removeEventListener(type, md);
                 } 
             }
         }
