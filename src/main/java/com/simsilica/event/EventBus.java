@@ -299,7 +299,11 @@ public class EventBus {
         
         protected final void resetArray() {
             // Presumes we already have the lock
-            array = list.toArray(array != null ? array : new EventListener[list.size()]);
+            //array = list.toArray(array != null ? array : new EventListener[list.size()]);
+            // Can't reuse the array or we create the exact threading problem we
+            // were trying to avoid.
+            array = list.toArray(new EventListener[list.size()]);
+            
         }
         
         protected final EventListener[] getArray() {
