@@ -17,6 +17,8 @@ apply plugin: 'maven'
 version='1.0.1'
 group='com.simsilica'
 
+ext.jmeVersion = "[3.1,)" 
+
 // Version meta-data
 ext {
     releaseDescription = "SiO2 ${project.version}"    
@@ -50,13 +52,13 @@ configurations {
 dependencies {
     compile 'com.google.guava:guava:19.0'
     
-    compile "org.jmonkeyengine:jme3-core:3.1.+" 
-    compile "org.jmonkeyengine:jme3-networking:3.1.+" 
+    compile "org.jmonkeyengine:jme3-core:$jmeVersion" 
+    compile "org.jmonkeyengine:jme3-networking:$jmeVersion" 
     
-    compile "com.simsilica:lemur:1.6.+"
+    compile "com.simsilica:lemur:[1.6,)"
 
-    compile "com.simsilica:zay-es:1.2.+"
-    compile "com.simsilica:zay-es-net:1.2.+"
+    compile "com.simsilica:zay-es:[1.2,)"
+    compile "com.simsilica:zay-es-net:[1.2,)"
  
     compile 'org.codehaus.groovy:groovy-all:2.4.5'
     
