@@ -101,6 +101,7 @@ public class GameSystemManager {
     }
  
     public void initialize() {
+        log.trace("initialize()");
         if( state != State.Terminated ) {
             throw new RuntimeException("Already initialized.");
         }
@@ -139,8 +140,9 @@ public class GameSystemManager {
     }
     
     public void terminate() {
+        log.trace("terminate()");
         if( !isInitialized() ) {
-            throw new RuntimeException("Not initialized");
+            throw new RuntimeException("Not initialized.  State:" + state);
         }
         state = State.Terminating;
         EventBus.publish(SimEvent.simTerminating, simEvent);
@@ -155,6 +157,7 @@ public class GameSystemManager {
     }
  
     public void start() {
+        log.trace("start()");
         if( !isInitialized() ) {
             throw new RuntimeException("Not initialized");
         }
@@ -174,6 +177,7 @@ public class GameSystemManager {
     }
  
     public void stop() {
+        log.trace("stop()");
         if( !isStarted() ) {
             return;
         }
