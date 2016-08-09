@@ -96,32 +96,57 @@ public class DebugHudState extends BaseAppState {
         views.add(view);
         viewIndex.put(name, view);
  
-        Label nameLabel = new Label(name + ": ", new ElementId("debug.name.label"));
-        
         switch( location ) {
             case Top:
-                nameLabel.setTextHAlignment(HAlignment.Right);
-                top.addChild(nameLabel);
+                view.nameLabel.setTextHAlignment(HAlignment.Right);
+                top.addChild(view.nameLabel);
                 top.addChild(view.label);                
                 break;
             case Bottom:
-                nameLabel.setTextHAlignment(HAlignment.Right);                
-                bottom.addChild(nameLabel);
+                view.nameLabel.setTextHAlignment(HAlignment.Right);                
+                bottom.addChild(view.nameLabel);
                 bottom.addChild(view.label);                
                 break;
             case Right:
-                right.addChild(nameLabel);
+                right.addChild(view.nameLabel);
                 right.addChild(view.label, 1);
                 break;
             case Left:
             default:
-                left.addChild(nameLabel);
+                left.addChild(view.nameLabel);
                 left.addChild(view.label, 1);
                 break;
         }
         
         resetScreenSize();        
         return view.value;
+    }
+ 
+    public void removeDebugValue( String name ) {
+        DebugView view = viewIndex.remove(name);
+        if( view == null ) {
+            return;
+        }
+        views.remove(view);
+        switch(view.location) {
+            case Top:
+                top.removeChild(view.nameLabel);
+                top.removeChild(view.label);                
+                break;
+            case Bottom:
+                bottom.removeChild(view.nameLabel);
+                bottom.removeChild(view.label);                
+                break;
+            case Right:
+                right.removeChild(view.nameLabel);
+                right.removeChild(view.label);
+                break;
+            case Left:
+            default:
+                left.removeChild(view.nameLabel);
+                left.removeChild(view.label);
+                break;
+        }       
     }
  
     /**
@@ -152,6 +177,7 @@ public class DebugHudState extends BaseAppState {
     protected void initialize( Application app ) {
         
         screen = new Container(new BorderLayout(), new ElementId("debug.screen.container"));
+        screen.setBackground(null);
  
         ElementId containerId = new ElementId("debug.container");       
         top = screen.addChild(new Container(new SpringGridLayout(Axis.X, Axis.Y), containerId), 
@@ -204,6 +230,7 @@ public class DebugHudState extends BaseAppState {
         String name;
         VersionedHolder<String> value;
         VersionedReference<String> ref;
+        Label nameLabel;
         Label label;
         Location location;
         
@@ -212,6 +239,7 @@ public class DebugHudState extends BaseAppState {
             this.location = location;
             this.value = new VersionedHolder<>("");
             this.ref = value.createReference();
+            this.nameLabel = new Label(name + ": ", new ElementId("debug.name.label"));
             this.label = new Label(value.getObject(), new ElementId("debug.value.label"));
         }
         
