@@ -215,8 +215,8 @@ public class EventBus {
             // That's ok, we handle the miss later 
         }
                
-        throw new NoSuchMethodException(type.getName() + "." + name1 + "(" + type.getEventClass().getName() + ")"
-                                        + " or " + type.getName() + "." + name2 + "(" + type.getEventClass().getName() + ")");  
+        throw new NoSuchMethodException(c.getName() + "." + name1 + "(" + type.getEventClass().getName() + ")"
+                                        + " or " + c.getName() + "." + name2 + "(" + type.getEventClass().getName() + ")");  
     }
  
     /**
