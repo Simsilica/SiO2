@@ -288,6 +288,7 @@ public class GameSystemManager {
                 sys.update(stepTime);
             }
         } catch( Throwable t ) {
+            log.error("Error updating systems", t);
             // Treat this as a fatal error... systems should
             // handle their own errors otherwise
             EventBus.publish(ErrorEvent.fatalError, new ErrorEvent(t));

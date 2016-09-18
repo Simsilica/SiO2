@@ -141,15 +141,20 @@ public class EventBus {
         }
 
         //System.out.println("listeners for type:" + type + " = " + getListeners(type));
+        boolean delivered = false;
         for( EventListener l : getListeners(type).getArray() ) {
             try {
                 l.newEvent(type, event);
+                delivered = true;
             } catch( Throwable t ) {
                 log.error("Error handling event:" + event + " for type:" + type + "  in handler:" + l, t);
                 if( type != ErrorEvent.dispatchError ) {
                     publishEvent(ErrorEvent.dispatchError, new ErrorEvent(t, type, event));
                 } 
             }
+        }
+        if( !delivered ) {
+            log.debug("Undelivered event type:" + type + "  Event:" + event);
         }
     }
  

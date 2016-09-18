@@ -5,6 +5,9 @@ Version 1.0.3
     only after an actual update was run.
 * Modified GameLoop to allow configuring the amount of time to sleep
     when idle-busy-polling for the next update interval.
+* Modified GameSystemManager to log its update errors before sending
+    them to the event bus as a fatal error.
+* Modified the EventBus to log.debug() any events that are undelivered.
     
 
 Version 1.0.2
