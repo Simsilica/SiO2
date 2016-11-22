@@ -14,10 +14,10 @@ buildscript {
 apply plugin: 'java'
 apply plugin: 'maven'
 
-version='1.0.3-SNAPSHOT'
+version='1.0.3'
 group='com.simsilica'
 
-ext.jmeVersion = "[3.1,)" 
+ext.jmeVersion = "3.1.0-alpha4" 
 
 // Version meta-data
 ext {
@@ -55,10 +55,10 @@ dependencies {
     compile "org.jmonkeyengine:jme3-core:$jmeVersion" 
     compile "org.jmonkeyengine:jme3-networking:$jmeVersion" 
     
-    compile "com.simsilica:lemur:[1.6,)"
+    compile "com.simsilica:lemur:1.6.1"
 
-    compile "com.simsilica:zay-es:[1.2,)"
-    compile "com.simsilica:zay-es-net:[1.2,)"
+    compile "com.simsilica:zay-es:1.2.1"
+    compile "com.simsilica:zay-es-net:1.2.1"
  
     compile 'org.codehaus.groovy:groovy-all:2.4.5'
     

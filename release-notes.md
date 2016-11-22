@@ -1,5 +1,5 @@
 
-Version 1.0.3
+Version 1.0.3 
 --------------
 * Flipped the GameLoop's update loop to sleep when idle instead of
     only after an actual update was run.
@@ -8,7 +8,10 @@ Version 1.0.3
 * Modified GameSystemManager to log its update errors before sending
     them to the event bus as a fatal error.
 * Modified the EventBus to log.debug() any events that are undelivered.
-    
+* Modified the build.gradle to replace the JME version with a specific 
+    version instead of letting it float.  I think alpha4 is generally
+    the minimum accepted 3.1 version at this point. 
+    Did the same for all of the floating version references.
 
 Version 1.0.2
 --------------
