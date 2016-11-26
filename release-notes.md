@@ -1,4 +1,13 @@
 
+Version 1.1.0 (unreleased)
+--------------
+* Fixed the EventBus addListener()/removeListener() methods to be static
+    like they were supposed to be.
+* Added the ability to add/remove global 'dispatch' listeners to the
+    EventBus.  This is useful for things like lifecycle logging or
+    other debug/status related operations.
+
+
 Version 1.0.3 
 --------------
 * Flipped the GameLoop's update loop to sleep when idle instead of

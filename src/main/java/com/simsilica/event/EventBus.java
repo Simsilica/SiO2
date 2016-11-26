@@ -67,11 +67,12 @@ public class EventBus {
 
     private static final EventBus instance = new EventBus();
 
+    private final ListenerList all = new ListenerList();
     private final Map<EventType,ListenerList> listenerMap = new ConcurrentHashMap<>(); 
     private final Lock lock = new ReentrantLock();    
 
     protected EventBus() {
-    }
+    } 
     
     /**
      *  Publishes the specified event to the event bus, delivering it to 
@@ -117,7 +118,7 @@ public class EventBus {
      *
      *  <p>This is the same as calling EventBus.getInstance().addEventListener(type, listener)</p>    
      */
-    public <E> void addListener( EventType<E> type, EventListener<E> listener ) {
+    public static <E> void addListener( EventType<E> type, EventListener<E> listener ) {
         getInstance().addEventListener(type, listener);
     }
     
@@ -126,10 +127,10 @@ public class EventBus {
      *
      *  <p>This is the same as calling EventBus.getInstance().removeEventListener(type, listener)</p>    
      */
-    public <E> void removeListener( EventType<E> type, EventListener<E> listener ) {
+    public static <E> void removeListener( EventType<E> type, EventListener<E> listener ) {
         getInstance().removeEventListener(type, listener);
     }
-    
+ 
     /**
      *  Publishes the specified event to the event bus, delivering it to 
      *  all listeners registered for the particular type.
@@ -140,9 +141,37 @@ public class EventBus {
             log.trace("publishEvent(" + type + ", " + event + ")");
         }
 
+        // Deliver to any global listeners first and we don't factor
+        // them into the delivery check.  The global list is usually used
+        // for things like lifecycle logging and not actual event handling.
+        deliver(null, event, all);
+        
         //System.out.println("listeners for type:" + type + " = " + getListeners(type));
+        boolean delivered = deliver(type, event, getListeners(type));
+        /*for( EventListener l : getListeners(type).getArray() ) {
+            try {
+                l.newEvent(type, event);
+                delivered = true;
+            } catch( Throwable t ) {
+                log.error("Error handling event:" + event + " for type:" + type + "  in handler:" + l, t);
+                if( type != ErrorEvent.dispatchError ) {
+                    publishEvent(ErrorEvent.dispatchError, new ErrorEvent(t, type, event));
+                } 
+            }
+        }*/
+        if( !delivered ) {
+            log.debug("Undelivered event type:" + type + "  Event:" + event);
+        }
+    }
+    
+    protected <E> boolean deliver( EventType<E> type, E event, ListenerList listeners ) {
+    
+        if( listeners.isEmpty() ) {
+            return false;
+        }
+    
         boolean delivered = false;
-        for( EventListener l : getListeners(type).getArray() ) {
+        for( EventListener l : listeners.getArray() ) {
             try {
                 l.newEvent(type, event);
                 delivered = true;
@@ -153,9 +182,7 @@ public class EventBus {
                 } 
             }
         }
-        if( !delivered ) {
-            log.debug("Undelivered event type:" + type + "  Event:" + event);
-        }
+        return delivered;
     }
  
     /**
@@ -199,6 +226,22 @@ public class EventBus {
         getListeners(type).remove(listener);
     }  
  
+    /**
+     *  Adds a special listener that will receive _all_ event notifications.  This
+     *  can be used to do logging or debugging on a global level and is generally
+     *  not useful for normal event delivery.
+     */
+    public void addDispatchListener( EventListener listener ) {
+        all.add(listener);   
+    }
+ 
+    /**
+     *  Removes a listener previously registered with the addDispatchListener() method.
+     */   
+    public void removeDispatchListener( EventListener listener ) {
+        all.remove(listener);
+    }
+    
     protected Method findMethod( Class c, EventType type ) throws NoSuchMethodException {
     
         // First try the 'on' + name version
@@ -300,6 +343,14 @@ public class EventBus {
  
         public ListenerList() {
             resetArray();
+        }
+        
+        public boolean isEmpty() {
+            // Relatively safe here because we know a little about how
+            // ArrayList is implemented and our constant usage of a volatile
+            // variable means that this threads view of the data structure is
+            // likely to be up to date.
+            return list.isEmpty();
         }
         
         protected final void resetArray() {
