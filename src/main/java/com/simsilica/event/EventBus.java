@@ -262,6 +262,11 @@ public class EventBus {
         } catch( NoSuchMethodException e ) {
             // That's ok, we handle the miss later 
         }
+        
+        if( c.getSuperclass() != null ) {
+            // Try the super class
+            return findMethod(c.getSuperclass(), type);
+        }
                
         throw new NoSuchMethodException(c.getName() + "." + name1 + "(" + type.getEventClass().getName() + ")"
                                         + " or " + c.getName() + "." + name2 + "(" + type.getEventClass().getName() + ")");  

@@ -6,6 +6,8 @@ Version 1.1.0 (unreleased)
 * Added the ability to add/remove global 'dispatch' listeners to the
     EventBus.  This is useful for things like lifecycle logging or
     other debug/status related operations.
+* Fixed the EventBus to properly check superclasses for autowired 
+    event listener methods.    
 
 
 Version 1.0.3 
