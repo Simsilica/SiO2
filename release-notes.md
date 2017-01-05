@@ -7,7 +7,9 @@ Version 1.1.0 (unreleased)
     EventBus.  This is useful for things like lifecycle logging or
     other debug/status related operations.
 * Fixed the EventBus to properly check superclasses for autowired 
-    event listener methods.    
+    event listener methods.
+* Exposed the DebugHudState's element IDs to make it easier to restyle
+    the debug HUD.
 
 
 Version 1.0.3 

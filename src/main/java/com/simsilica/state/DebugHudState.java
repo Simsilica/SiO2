@@ -72,6 +72,11 @@ public class DebugHudState extends BaseAppState {
 
     public static final FunctionId HUD_TOGGLE = new FunctionId("Show Debug HUD");
  
+    public static final ElementId SCREEN_ID = new ElementId("debug.screen.container");
+    public static final ElementId CONTAINER_ID = new ElementId("debug.container");
+    public static final ElementId NAME_ID = new ElementId("debug.name.label");
+    public static final ElementId VALUE_ID = new ElementId("debug.value.label");
+ 
     private Node hudRoot;   
     private Container screen;
     private float zOffset = 0;
@@ -176,10 +181,10 @@ public class DebugHudState extends BaseAppState {
     @Override
     protected void initialize( Application app ) {
         
-        screen = new Container(new BorderLayout(), new ElementId("debug.screen.container"));
+        screen = new Container(new BorderLayout(), SCREEN_ID);
         screen.setBackground(null);
  
-        ElementId containerId = new ElementId("debug.container");       
+        ElementId containerId = CONTAINER_ID;       
         top = screen.addChild(new Container(new SpringGridLayout(Axis.X, Axis.Y), containerId), 
                               BorderLayout.Position.North);
         bottom = screen.addChild(new Container(new SpringGridLayout(Axis.X, Axis.Y), containerId), 
