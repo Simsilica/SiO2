@@ -1,5 +1,5 @@
 
-Version 1.1.0 (unreleased)
+Version 1.1.0
 --------------
 * Fixed the EventBus addListener()/removeListener() methods to be static
     like they were supposed to be.
