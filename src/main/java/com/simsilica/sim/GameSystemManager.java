@@ -173,6 +173,9 @@ public class GameSystemManager {
             sys.start();
         }
         state = State.Started;
+        // Update the step time...
+        long time = System.nanoTime(); 
+        stepTime.update(time);
         EventBus.publish(SimEvent.simStarted, simEvent);
     }
  
