@@ -164,7 +164,11 @@ public class GameSystemManager {
         if( isStarted() ) {
             return;
         }
-        state = State.Starting;
+        
+        // Update to the latest time
+        updateTime();
+        
+        state = State.Starting;                        
         EventBus.publish(SimEvent.simStarting, simEvent);
         for( GameSystem sys : getArray() ) {
             if( log.isTraceEnabled() ) {
@@ -280,8 +284,7 @@ public class GameSystemManager {
     public void update() {
         try {
             // Update the step time...
-            long time = System.nanoTime(); 
-            stepTime.update(time);
+            updateTime();
             
             // Update the systems.
             for( GameSystem sys : getArray() ) {
@@ -293,6 +296,11 @@ public class GameSystemManager {
             // handle their own errors otherwise
             EventBus.publish(ErrorEvent.fatalError, new ErrorEvent(t));
         }
+    }
+    
+    protected void updateTime() {
+        long time = System.nanoTime(); 
+        stepTime.update(time);    
     } 
 }
 
