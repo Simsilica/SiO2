@@ -93,7 +93,11 @@ public abstract class EntityContainer<T> {
             if( t instanceof ParameterizedType ) {
                 ParameterizedType pt = (ParameterizedType)t;
                 if( pt.getRawType() == EntityContainer.class ) {
-                    parameter = (Class)pt.getActualTypeArguments()[0];
+                    if( pt.getActualTypeArguments()[0] instanceof ParameterizedType ) {
+                        parameter = (Class)((ParameterizedType)pt.getActualTypeArguments()[0]).getRawType();
+                    } else {
+                        parameter = (Class)pt.getActualTypeArguments()[0];
+                    }
                     break;
                 } 
             } else if( t instanceof Class ) {

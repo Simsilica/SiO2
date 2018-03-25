@@ -2,6 +2,9 @@ Version 1.1.1 (unreleased)
 --------------
 * Fixed a SimTime initialization problem where the first tpf would be
     huge.
+* Fixed an issue where EntityContainer wouldn't support nested parameterized
+    types.
+        
 
 Version 1.1.0
 --------------
