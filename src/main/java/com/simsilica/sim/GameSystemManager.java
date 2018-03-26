@@ -302,6 +302,16 @@ public class GameSystemManager {
         long time = System.nanoTime(); 
         stepTime.update(time);    
     } 
+    
+    /**
+     *  Returns the SimTime representing the time at the beginning of the
+     *  most recent update() call.  Note: this is not thread safe if the
+     *  GameSystemManager is being updated from a background thread like 
+     *  GameLoop.  GameLoop provides its own stable thread-safe step time.
+     */
+    public SimTime getStepTime() {
+        return stepTime;
+    }
 }
 
 

@@ -1,9 +1,19 @@
+
 Version 1.1.1 (unreleased)
 --------------
 * Fixed a SimTime initialization problem where the first tpf would be
     huge.
 * Fixed an issue where EntityContainer wouldn't support nested parameterized
     types.
+* Added GameSystemManager.getStepTime()
+* Added GameLoop.getStepTime() that is thread-safe with respect to the game loop
+    thread.
+* Added SimTime.toSimTime() and SimTime.getFutureTime(duration) to help with
+    conversion of seconds to game time.
+* Added a standard es.common.Decay component for tracking the 'life' of an
+    entity.
+* Added a standard sim.common.DecaySystem for automatically destroying entities
+    whose Decay time has expired. 
         
 
 Version 1.1.0

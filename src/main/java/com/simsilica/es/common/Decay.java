@@ -1,7 +1,7 @@
 /*
  * $Id$
  * 
- * Copyright (c) 2015, Simsilica, LLC
+ * Copyright (c) 2018, Simsilica, LLC
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -34,65 +34,65 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.simsilica.sim;
+package com.simsilica.es.common;
 
+import com.simsilica.es.EntityComponent;
+import com.simsilica.es.PersistentComponent;
 
 /**
- *  Provides information about the current simulation time step,
- *  including frame number, game time, and tpf.
+ *  A standard component for tracking the life/death of an entity.
+ *  It can also provide the percentage of time remaining from when
+ *  it was first created.
  *
  *  @author    Paul Speed
  */
-public class SimTime {
-    private long frame;
-    private long time;
-    private double tpf;
-    private double invTimeScale = 1000000000.0; // nanos  
-    private double timeScale = 1.0 / invTimeScale;
+public class Decay implements EntityComponent, PersistentComponent {
+    private long startTime;
+    private long endTime;
     
-    public SimTime() {
-    }
-    
-    public void update( long time ) {
-        frame++;
-        tpf = (time - this.time) * timeScale;
-        this.time = time;
+    public Decay() {
     }
  
-    public long toSimTime( double seconds ) {
-        return (long)(seconds * invTimeScale);
-    }
- 
-    public long getFutureTime( double seconds ) {
-        return time + toSimTime(seconds); 
-    }        
-    
-    public final double getTpf() {
-        return tpf;
+    /**
+     *  Creates a decay component with a start/end time that can
+     *  provide things like time remaining and percent remaining.
+     */
+    public Decay( long startTime, long endTime ) {
+        this.startTime = startTime;
+        this.endTime = endTime;
     }
     
-    public final long getFrame() {
-        return frame;
+    public static Decay duration( long startTime, long duration ) {
+        return new Decay(startTime, startTime + duration);
     }
     
-    public final long getTime() {
-        return time;
+    public long getStartTime() {
+        return startTime;
     }
     
-    public final double getTimeInSeconds() {
-        return time * timeScale;
+    public long getEndTime() {
+        return endTime;
     }
     
-    public final double getTimeScale() {
-        return timeScale;
+    public long getTimeRemaining( long time ) {
+        return Math.max(0, endTime - time);
     }
- 
-    public final long addMillis( long ms ) {
-        return time + ms * 1000000L;
+    
+    public boolean isDead( long time ) {
+        return time >= endTime; 
+    }
+    
+    public double getPercentRemaining( long time ) {
+        if( time >= endTime ) {
+            return 0;
+        }
+        long remain = endTime - time;        
+        double total = endTime - startTime;
+        return remain / total; 
     }
  
     @Override   
     public String toString() {
-        return getClass().getSimpleName() + "[tpf=" + getTpf() + ", seconds=" + getTimeInSeconds() + "]";
-    }
+        return "Decay[startTime=" + startTime + ", endTime=" + endTime + "]";
+    } 
 }

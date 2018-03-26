@@ -37,6 +37,7 @@
 package com.simsilica.sim;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 
 /**
@@ -55,6 +56,17 @@ public class GameLoop {
  
     private long updateRate;
     private long idleSleepTime = 0;
+ 
+    /**
+     *  Keep track of the last update time in a thread safe way.
+     */   
+    private AtomicLong lastStepTime = new AtomicLong();
+    
+    /**
+     *  Convenient wrapper object to provide sim time outside
+     *  of the run thread.
+     */
+    private SimTime safeTime = new SimTime();
     
     public GameLoop(GameSystemManager systems) {
         this(systems, INTERVAL_FPS_60); // 60 FPS 
@@ -72,6 +84,20 @@ public class GameLoop {
 
     public GameSystemManager getGameSystemManager() {
         return systems;
+    }
+
+    /**
+     *  Returns the SimTime representing the time at the begining of the
+     *  last call to update.  This SimTime is isolated from the thread and
+     *  will update itself when this method is called.  That means the value
+     *  is stable as long as it is used from the same thread.
+     */
+    public SimTime getStepTime() {
+        // Update only when needed so that tpf, etc. are accurate.
+        if( safeTime.getTime() != lastStepTime.get() ) {
+            safeTime.update(lastStepTime.get());
+        }
+        return safeTime;
     }
 
     /**
@@ -165,6 +191,7 @@ public class GameLoop {
                     // Time to update
                     lastTime = time;                                        
                     systems.update();
+                    lastStepTime.set(systems.getStepTime().getTime());
                     continue;
                 }
  
