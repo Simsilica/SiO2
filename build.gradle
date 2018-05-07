@@ -17,7 +17,7 @@ apply plugin: 'maven'
 version='1.1.1-SNAPSHOT'
 group='com.simsilica'
 
-ext.jmeVersion = "3.1.0-alpha4" 
+ext.jmeVersion = "3.2.1-stable" 
 
 // Version meta-data
 ext {
@@ -37,9 +37,6 @@ ext {
 repositories {
     mavenLocal()
     jcenter()
-    
-    // Temporary until JME jars are in jcenter()   
-    maven { url "http://dl.bintray.com/jmonkeyengine/org.jmonkeyengine" }        
 }
 
 // Make sure the build file declares what it actually imports
@@ -83,6 +80,38 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 artifacts {
     archives sourcesJar
     archives javadocJar
+}
+
+// Common configuration for the root and all 'real' children.
+// The plan is to just keep maven-repo publishing related stuff
+// here so that the other build files can look as close to
+// regular java builds as possible.
+configure(allprojects.findAll {it.name != 'extensions'}) {
+
+    apply plugin: 'maven' // for installing to maven local
+
+    // Common group ID for all projects here
+    group='com.simsilica'
+
+    ext {
+        websiteUrl = 'https://github.com/Simsilica/SiO2'
+        vcsUrl = 'https://github.com/Simsilica/SiO2.git'
+        githubRepo = 'Simsilica/SiO2'
+        issueTrackerUrl = 'https://github.com/Simsilica/SiO2/issues'
+    }
+
+    // One non-maven thing in this block to keep us honest with respect to
+    // imports
+    configurations {
+        compile.transitive = false
+    }
+
+    // Centralizing this bintray reference here so it's easier to
+    // remove when JME is in jcenter().
+    repositories {
+        jcenter()
+        mavenLocal()
+    }
 }
 
 

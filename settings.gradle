@@ -1,2 +1,10 @@
+include 'extensions:bullet'
+include 'demos:bullet'
 
 rootProject.name = 'sio2'
+
+// More sensible sub-project names for jars and stuff
+project(":extensions:bullet").name = "sio2-bullet"
+project(":demos:bullet").name = "sio2-bullet-demo"
+
+

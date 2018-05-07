@@ -1,0 +1,58 @@
+
+apply plugin: 'java'
+
+version='1.0.0-SNAPSHOT'
+
+ext.jmeVersion = "3.2.1-stable" 
+
+// Version meta-data
+ext {
+    releaseDescription = "SiO2 Bullet ${project.version}"    
+    releaseVcsTag = "${project.name}-v${project.version}"    
+}
+
+repositories {
+    mavenLocal()
+    jcenter()
+}
+
+// In this section you declare the dependencies for your production and test code
+dependencies {
+    compile rootProject
+    
+    compile 'org.jmonkeyengine:jme3-bullet:3.2.1-stable'
+    //compile "org.jmonkeyengine:jme3-jbullet:$jmeVersion"
+    
+    compile "com.simsilica:zay-es:1.2.1"
+    compile "com.simsilica:sim-math:1.1.2-SNAPSHOT"
+    
+    compile 'com.google.guava:guava:19.0'
+    compile 'org.slf4j:slf4j-api:1.7.13'
+}
+
+
+// Configuration to produce maven-repo style -sources and -javadoc jars
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+    exclude '**/.backups' 
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+ 
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+
+// Put this at the end or it won't pick up the project.version and stuff
+if( project.hasProperty('releaseUser') ) {
+    apply plugin: 'com.jfrog.bintray'
+    apply from: 'https://raw.githubusercontent.com/Simsilica/gradle-plugins/master/simtools-release.gradle'
+}
+
+
