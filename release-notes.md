@@ -13,7 +13,9 @@ Version 1.1.1 (unreleased)
 * Added a standard es.common.Decay component for tracking the 'life' of an
     entity.
 * Added a standard sim.common.DecaySystem for automatically destroying entities
-    whose Decay time has expired. 
+    whose Decay time has expired.
+* Added AbstractGameSystem.getSystem(class, failOnMiss) that can optionally
+    throw an exception if the system does not exist.
         
 
 Version 1.1.0

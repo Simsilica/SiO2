@@ -55,7 +55,15 @@ public abstract class AbstractGameSystem implements GameSystem {
     }
     
     protected <T> T getSystem( Class<T> type ) {
-        return parent.get(type);
+        return getSystem(type, false);
+    }
+
+    protected <T> T getSystem( Class<T> type, boolean failOnMiss ) {
+        T result = parent.get(type);
+        if( result == null && failOnMiss ) {
+            throw new IllegalArgumentException("System not found for:" + type);
+        } 
+        return result;
     }
 
     @Override
