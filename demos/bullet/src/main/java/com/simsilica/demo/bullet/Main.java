@@ -159,6 +159,8 @@ public class Main extends SimpleApplication {
         bullet.addPhysicsObjectListener(new DebugPhysicsListener(ed));
         systems.register(BulletSystem.class, bullet);
  
+        systems.addSystem(new WanderSystem());
+ 
         // Add a state we can use to visualize debugging information
         stateManager.attach(new PhysicsDebugState(ed, shapes, new PositionAdapterImpl()));
  
@@ -215,6 +217,34 @@ public class Main extends SimpleApplication {
                          ShapeInfo.create("wall", ed),
                          new SpawnPosition(new Vector3f(20, 1, 10), FastMath.HALF_PI),
                          new Mass(0));
+                         
+        wall = ed.createEntity();
+        ed.setComponents(wall,
+                         ModelInfo.create("wall", ed),
+                         ShapeInfo.create("wall", ed),
+                         new SpawnPosition(10, 1, 20),
+                         new Mass(0));
+
+        wall = ed.createEntity();
+        ed.setComponents(wall,
+                         ModelInfo.create("wall", ed),
+                         ShapeInfo.create("wall", ed),
+                         new SpawnPosition(-10, 1, 20),
+                         new Mass(0));
+
+        wall = ed.createEntity();
+        ed.setComponents(wall,
+                         ModelInfo.create("wall", ed),
+                         ShapeInfo.create("wall", ed),
+                         new SpawnPosition(new Vector3f(-20, 1, -10), FastMath.HALF_PI),
+                         new Mass(0));
+
+        wall = ed.createEntity();
+        ed.setComponents(wall,
+                         ModelInfo.create("wall", ed),
+                         ShapeInfo.create("wall", ed),
+                         new SpawnPosition(new Vector3f(-20, 1, 10), FastMath.HALF_PI),
+                         new Mass(0));                         
 
         // Create a static test box                         
         EntityId testBox = ed.createEntity();
@@ -232,19 +262,29 @@ public class Main extends SimpleApplication {
                          new SpawnPosition(-5, 1, 5),
                          new Ghost());
                          
-                         
-        // Create a wanderer
-        EntityId wanderer = ed.createEntity();
-        ed.setComponents(wanderer,                         
-                         ShapeInfo.create("avatar", ed),
-                         ModelInfo.create("avatar", ed),
-                         new SpawnPosition(0, 1, 0),
-                         new Mass(30));
-        EntityId wandererGhost = ed.createEntity();
-        ed.setComponents(wandererGhost,
-                         ShapeInfo.create("avatarPerception", ed),
-                         new SpawnPosition(0, 0, 0.4f),
-                         new Ghost(wanderer));                         
+ 
+        int wandererCount = 4;
+        Random rand = new Random(0);
+        for( int i = 0; i < wandererCount; i++ ) {
+        
+            float x = rand.nextFloat() * 30 - 15;
+            float z = rand.nextFloat() * 30 - 15;
+            
+                                       
+            // Create a wanderer
+            EntityId wanderer = ed.createEntity();
+            ed.setComponents(wanderer,                         
+                            ShapeInfo.create("avatar", ed),
+                            ModelInfo.create("avatar", ed),
+                            new SpawnPosition(x, 1, z),
+                            new Mass(30),
+                            new Wander());
+            EntityId wandererGhost = ed.createEntity();
+            ed.setComponents(wandererGhost,
+                            ShapeInfo.create("avatarPerception", ed),
+                            new SpawnPosition(0, 0, 0.4f),
+                            new Ghost(wanderer));
+        }
     }
 
     public void simpleInitApp() {
