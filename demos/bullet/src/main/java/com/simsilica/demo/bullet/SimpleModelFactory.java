@@ -107,6 +107,32 @@ public class SimpleModelFactory implements ModelFactory {
             geom.getMaterial().setColor("Ambient", ColorRGBA.Brown);
             geom.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
             return geom;
+        } else if( "avatar".equals(name) ) {
+            Node result = new Node(name);
+            Mesh mesh = new Cylinder(2, 8, 0.1f, 2, true);
+            Geometry geom = new Geometry(name, mesh);
+            geom.setMaterial(globals.createMaterial(ColorRGBA.Red, true).getMaterial());
+            geom.getMaterial().setColor("Ambient", ColorRGBA.Red);
+            geom.rotate(FastMath.HALF_PI, 0, 0);
+            result.attachChild(geom);
+ 
+            mesh = new Sphere(12, 12, 0.3f);
+            geom = new Geometry(name, mesh);
+            geom.setMaterial(globals.createMaterial(ColorRGBA.Red, true).getMaterial());
+            geom.getMaterial().setColor("Ambient", ColorRGBA.Red);
+            geom.move(0, 0.8f, 0);
+            result.attachChild(geom);
+
+            mesh = new Sphere(4, 4, 0.1f);
+            geom = new Geometry(name, mesh);
+            geom.setMaterial(globals.createMaterial(ColorRGBA.White, true).getMaterial());
+            geom.getMaterial().setColor("Ambient", ColorRGBA.White);
+            geom.move(0, 0.8f, 0.3f);
+            result.attachChild(geom);
+                       
+            result.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+            
+            return result;
         }
         
         return null;

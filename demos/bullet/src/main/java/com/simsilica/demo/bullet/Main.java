@@ -173,6 +173,10 @@ public class Main extends SimpleApplication {
                         new BoxCollisionShape(new Vector3f(10, 1, 0.25f))); 
         shapes.register(ShapeInfo.create("bigSphere", ed),
                         new SphereCollisionShape(3)); 
+        shapes.register(ShapeInfo.create("avatar", ed),
+                        new CapsuleCollisionShape(0.3f, 1.4f));
+        shapes.register(ShapeInfo.create("avatarPerception", ed),
+                        new CapsuleCollisionShape(0.7f, 0.6f));
 
  
         // Create a floor
@@ -224,9 +228,23 @@ public class Main extends SimpleApplication {
         EntityId ghost = ed.createEntity();                         
         ed.setComponents(ghost,                           
                          ShapeInfo.create("bigSphere", ed),
-                         //ModelInfo.create("bigSphere", ed),
+                         //ModelInfo.create("bigSphere", ed),  // just useful for debugging
                          new SpawnPosition(-5, 1, 5),
                          new Ghost());
+                         
+                         
+        // Create a wanderer
+        EntityId wanderer = ed.createEntity();
+        ed.setComponents(wanderer,                         
+                         ShapeInfo.create("avatar", ed),
+                         ModelInfo.create("avatar", ed),
+                         new SpawnPosition(0, 1, 0),
+                         new Mass(30));
+        EntityId wandererGhost = ed.createEntity();
+        ed.setComponents(wandererGhost,
+                         ShapeInfo.create("avatarPerception", ed),
+                         new SpawnPosition(0, 0, 0.4f),
+                         new Ghost(wanderer));                         
     }
 
     public void simpleInitApp() {
