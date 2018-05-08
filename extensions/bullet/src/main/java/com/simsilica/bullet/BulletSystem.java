@@ -39,6 +39,8 @@ package com.simsilica.bullet;
 import java.util.*;
 import java.util.concurrent.*;
 
+import com.google.common.base.Function;
+
 import org.slf4j.*;
 
 import com.jme3.bullet.*;
@@ -77,10 +79,46 @@ public class BulletSystem extends AbstractGameSystem {
  
     // Keeps track of just the bodies that are non-kinematic rigid bodies   
     private SafeArrayList<EntityPhysicsObject> mobs = new SafeArrayList<>(EntityPhysicsObject.class);
+
+    // Keeps track of just the bodies that have control drivers
+    private SafeArrayList<EntityRigidBody> driverBodies = new SafeArrayList<>(EntityRigidBody.class); 
     
     private SafeArrayList<PhysicsObjectListener> objectListeners = new SafeArrayList<>(PhysicsObjectListener.class); 
 
+    private ConcurrentLinkedQueue<ObjectSetup> pendingSetup = new ConcurrentLinkedQueue<>();
+
     public BulletSystem() {
+    }
+
+    /**
+     *  Initializes an EntityPhysicsObjects using the specified function.  This
+     *  is useful for two reasons: 1) it can be called before the object actually
+     *  exists and will be called when the object shows up (beware leaks), 2) it
+     *  will always be called on the same thread that the physics simulation is running
+     *  on.
+     */
+    public void setupObject( EntityId objectId, Function<EntityPhysicsObject, ?> setup ) {
+        pendingSetup.add(new ObjectSetup(objectId, setup));
+    }     
+
+    /**
+     *  Sets the ControlDriver for a physics object.  This delegates to setupObject()
+     *  so will succeed even if the entity's rigid body hasn't been created quite yet.
+     */
+    public void setControlDriver( EntityId objectId, final ControlDriver driver ) {
+        setupObject(objectId, new Function<EntityPhysicsObject, Void>() {
+                @Override
+                public Void apply( EntityPhysicsObject object ) {
+                    EntityRigidBody body = (EntityRigidBody)object;
+                    body.setControlDriver(driver);
+                    if( driver != null ) {
+                        driverBodies.add(body);
+                    } else {
+                        driverBodies.remove(body);
+                    }
+                    return null;
+                }  
+            }); 
     }
 
     /**
@@ -165,10 +203,16 @@ public class BulletSystem extends AbstractGameSystem {
         super.update(time);
         
         startFrame(time);
-        
+         
         bodies.update();
         ghosts.update();
-        
+
+        // Run setup after we have the latest bodies and ghosts
+        // We'll run it every time because when there are no pending setup
+        // objects, it's essentially free... and when there are we don't 
+        // know if the entity is ready or not yet.
+        runPendingSetup();
+                
         impulses.applyChanges();
         if( !impulses.isEmpty() ) {
             // We don't really care if the set changed or not, we will
@@ -179,11 +223,29 @@ public class BulletSystem extends AbstractGameSystem {
         }       
 
         float t = (float)(time.getTpf() * speed);
-        if( t != 0 ) { 
+        if( t != 0 ) {
+        
+            for( EntityRigidBody b : driverBodies.getArray() ) {
+                b.getControlDriver().update(time, b);
+            }
+         
             pSpace.update(t);        
             pSpace.distributeEvents();
             
             for( EntityPhysicsObject o : mobs.getArray() ) {
+                
+                if( o instanceof EntityGhostObject ) {
+                    // The only reason its in the mobs array is because
+                    // is has a parent
+                    EntityGhostObject g = (EntityGhostObject)o;
+                    EntityRigidBody parent = g.getParent();
+                    if( parent == null ) {
+                        // May not have resolved yet
+                        g.setParent(parent = bodies.getObject(g.getParentId()));                       
+                    }
+                    g.updateToParent();
+                }
+            
                 objectUpdated(o);
             }
         }
@@ -197,6 +259,20 @@ public class BulletSystem extends AbstractGameSystem {
         ghosts.stop();
         bodies.stop();
         super.stop();
+    }
+    
+    protected void runPendingSetup() {
+        ObjectSetup setup = null;
+        while( (setup = pendingSetup.poll()) != null ) {
+            if( !setup.execute() ) {
+                // Add it back to the queue
+                pendingSetup.add(setup);
+                
+                // If there is a lot of delay, this is horribly inefficient and it
+                // would be better to peek and then remove... we hope that in general
+                // the object exists already.
+            }
+        }
     }    
 
     protected void applyImpulses( Set<Entity> impulses ) {
@@ -364,8 +440,39 @@ public class BulletSystem extends AbstractGameSystem {
             mobs.remove(object);
              
             objectRemoved(object);
-        }
+        }   
+    }
     
+    private class ObjectSetup {
+        EntityId objectId;
+        Function<EntityPhysicsObject, ?> function;
+        int tries = 0;
+        
+        public ObjectSetup( EntityId objectId, Function<EntityPhysicsObject, ?> function ) {
+            this.objectId = objectId;
+            this.function = function;
+        }
+        
+        public boolean execute() {
+            EntityRigidBody body = bodies.getObject(objectId);
+            if( body != null ) {
+                function.apply(body);
+                return true;
+            }
+            // Don't know what this would be used for but it's easy to support
+            EntityGhostObject ghost = ghosts.getObject(objectId);
+            if( ghost != null ) {
+                function.apply(ghost);
+                return true;
+            }
+            
+            tries++;
+            if( tries > 100 ) {
+                log.warn("Object setup for:" + objectId + " exceeded 100 tries waiting for object.  Aborting setup.");
+                return true;
+            }
+            return false;
+        }
     }
 }
 

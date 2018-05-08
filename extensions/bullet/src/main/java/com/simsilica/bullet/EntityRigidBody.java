@@ -55,6 +55,7 @@ public class EntityRigidBody extends PhysicsRigidBody
  
     private EntityId id;
     private Mass mass;
+    private ControlDriver driver;
     
     public EntityRigidBody( EntityId id, CollisionShape shape, Mass mass ) {
         super(shape, mass.getMass());
@@ -70,6 +71,24 @@ public class EntityRigidBody extends PhysicsRigidBody
     @Override
     public PhysicsRigidBody getObject() {
         return this;    
+    }
+ 
+    /**
+     *  Sets a driver object that will be called once per frame to 'control'
+     *  the object.
+     */
+    public void setControlDriver( ControlDriver driver ) {
+        if( this.driver != null ) {
+            this.driver.terminate(this);
+        }
+        this.driver = driver;
+        if( this.driver != null ) {
+            this.driver.initialize(this);
+        }        
+    }
+    
+    public ControlDriver getControlDriver() {
+        return driver;
     }
  
     @Override

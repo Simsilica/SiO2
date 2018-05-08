@@ -57,6 +57,8 @@ public class EntityGhostObject extends PhysicsGhostObject
     private EntityId parentId;
     private EntityRigidBody parent;
     private SpawnPosition parentOffset;
+    private Vector3f vTemp;
+    private Quaternion qTemp;    
     
     public EntityGhostObject( EntityId id, CollisionShape shape ) {
         super(shape);
@@ -93,10 +95,36 @@ public class EntityGhostObject extends PhysicsGhostObject
      */
     protected void setParent( EntityId parentId, EntityRigidBody parent, SpawnPosition parentOffset ) {
         this.parentId = parentId;
-        this.parent = parent;
         this.parentOffset = parentOffset;
+        setParent(parent);
     }
-    
+
+    /**
+     *  Used internally to set the parent rigid body when this ghost is 'attached' to
+     *  a parent object.
+     */
+    protected void setParent( EntityRigidBody parent ) {
+        this.parent = parent;
+        if( parent != null ) {
+            vTemp = new Vector3f();
+            qTemp = new Quaternion();
+        }
+    } 
+
+    protected boolean updateToParent() {
+        if( parent == null ) {
+            return false;
+        }
+ 
+        parent.getPhysicsLocation(vTemp);
+        parent.getPhysicsRotation(qTemp);
+            
+        setPhysicsLocation(vTemp.add(qTemp.mult(parentOffset.getLocation())));
+        setPhysicsRotation(qTemp.mult(parentOffset.getOrientation()));
+ 
+        return true;           
+    }
+     
     @Override
     public Vector3f getPhysicsLocation( Vector3f trans ) {
         return super.getPhysicsLocation(trans);
