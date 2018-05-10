@@ -157,6 +157,7 @@ public class Main extends SimpleApplication {
         bullet = new BulletSystem();
         bullet.addPhysicsObjectListener(new PositionPublisher(ed));
         bullet.addPhysicsObjectListener(new DebugPhysicsListener(ed));
+        bullet.addEntityCollisionListener(new DefaultContactPublisher(ed));
         systems.register(BulletSystem.class, bullet);
  
         systems.addSystem(new WanderSystem());
@@ -256,14 +257,14 @@ public class Main extends SimpleApplication {
                          
         // Create a static ghost object
         EntityId ghost = ed.createEntity();                         
-        ed.setComponents(ghost,                           
+/*        ed.setComponents(ghost,                           
                          ShapeInfo.create("bigSphere", ed),
                          //ModelInfo.create("bigSphere", ed),  // just useful for debugging
                          new SpawnPosition(-5, 1, 5),
-                         new Ghost());
+                         new Ghost());*/
                          
  
-        int wandererCount = 4;
+        int wandererCount = 0;
         Random rand = new Random(0);
         for( int i = 0; i < wandererCount; i++ ) {
         
