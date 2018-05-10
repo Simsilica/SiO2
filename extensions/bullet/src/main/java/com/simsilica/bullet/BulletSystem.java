@@ -44,6 +44,7 @@ import com.google.common.base.Function;
 import org.slf4j.*;
 
 import com.jme3.bullet.*;
+import com.jme3.bullet.collision.*;
 import com.jme3.bullet.PhysicsSpace.BroadphaseType;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.math.*;
@@ -64,6 +65,8 @@ public class BulletSystem extends AbstractGameSystem {
     static Logger log = LoggerFactory.getLogger(BulletSystem.class);
 
     private PhysicsSpace pSpace;
+    private CollisionDispatcher collisionDispatcher = new CollisionDispatcher();
+    
     private EntityData ed;
     private CollisionShapes shapes;
 
@@ -85,6 +88,8 @@ public class BulletSystem extends AbstractGameSystem {
     
     private SafeArrayList<PhysicsObjectListener> objectListeners = new SafeArrayList<>(PhysicsObjectListener.class); 
 
+    private SafeArrayList<EntityCollisionListener> collisionListeners = new SafeArrayList<>(EntityCollisionListener.class);
+    
     private ConcurrentLinkedQueue<ObjectSetup> pendingSetup = new ConcurrentLinkedQueue<>();
 
     public BulletSystem() {
@@ -124,6 +129,8 @@ public class BulletSystem extends AbstractGameSystem {
     /**
      *  Adds a listener that will be notified about all physics objects changes.
      *  These listeners are called several times per frame and should be efficient and few.
+     *  Note: this method is not thread safe and should only be called by the simulation
+     *  thread once the game manager has been started. 
      */
     public void addPhysicsObjectListener( PhysicsObjectListener l ) {
         objectListeners.add(l);
@@ -131,6 +138,20 @@ public class BulletSystem extends AbstractGameSystem {
 
     public void removePhysicsObjectListener( PhysicsObjectListener l ) {
         objectListeners.remove(l);
+    }
+
+    /**
+     *  Adds a collision listener that will be notified collisions between entity-backed physical
+     *  objects and other physics bodies (whether entity-base dor not).
+     *  Note: this method is not thread safe and should only be called by the simulation
+     *  thread once the game manager has been started. 
+     */
+    public void addEntityCollisionListener( EntityCollisionListener l ) {
+        collisionListeners.add(l);
+    }
+
+    public void removeEntityCollisionListener( EntityCollisionListener l ) {
+        collisionListeners.remove(l);
     }
 
     /**
@@ -179,6 +200,7 @@ public class BulletSystem extends AbstractGameSystem {
         }
         
         pSpace = new PhysicsSpace(worldMin, worldMax, broadphaseType);
+        pSpace.addCollisionListener(collisionDispatcher);
 
         bodies = new BodyContainer(ed);
         ghosts = new GhostContainer(ed);
@@ -191,7 +213,7 @@ public class BulletSystem extends AbstractGameSystem {
 
     @Override
     public void start() {
-        super.start();
+        super.start();        
         bodies.start();
         ghosts.start();
         
@@ -330,6 +352,13 @@ public class BulletSystem extends AbstractGameSystem {
         for( PhysicsObjectListener l : objectListeners.getArray() ) {
             l.removed(o);
         }
+    }
+
+    private EntityPhysicsObject toEntityPhysicsObject( Object o ) {
+        if( !(o instanceof EntityPhysicsObject) ) {
+            return null;
+        }
+        return (EntityPhysicsObject)o;
     }
  
     private class BodyContainer extends EntityContainer<EntityRigidBody> {
@@ -474,801 +503,29 @@ public class BulletSystem extends AbstractGameSystem {
             return false;
         }
     }
-}
-
-/*
-
-package sb.phys;
-
-import java.util.*;
-import java.util.concurrent.*;
-
-import org.slf4j.*;
-
-import com.jme3.bullet.*;
-import com.jme3.bullet.PhysicsSpace.BroadphaseType;
-import com.jme3.bullet.collision.*;
-import com.jme3.bullet.collision.shapes.CollisionShape;
-import com.jme3.bullet.objects.PhysicsGhostObject;
-import com.jme3.bullet.objects.PhysicsRigidBody;
-import com.jme3.bullet.PhysicsSpace.BroadphaseType;
-import com.jme3.math.*;
-import com.jme3.util.SafeArrayList;
-
-import com.simsilica.es.*;
-import com.simsilica.es.common.Decay;
-import com.simsilica.sim.*;
-
-import sb.es.*;
-
-public class BulletSystem extends AbstractGameSystem {
-
-    static Logger log = LoggerFactory.getLogger(BulletSystem.class);
-
-    private PhysicsSpace pSpace;
-    private EntityData ed;
-    private CollisionShapes shapes;
-
-    private Map<EntityId, ControlDriver> drivers = new ConcurrentHashMap<>();
-    private List<EntityId> driverPending = new CopyOnWriteArrayList<>(); // not the fastest, but safe
-    private ControlDriver nullDriver = new DefaultControlDriver();
     
-    // A list we can easily iterate over to update drivers
-    private SafeArrayList<Body> driverBodies = new SafeArrayList<>(Body.class);
-
-    private BroadphaseType broadphaseType = BroadphaseType.DBVT;
-    private Vector3f worldMin = new Vector3f(-10000f, -10000f, -10000f);
-    private Vector3f worldMax = new Vector3f(10000f, 10000f, 10000f);
-    private float speed = 1;
- 
-    private BodyContainer bodies;
-    private SafeArrayList<AbstractBody> mobs = new SafeArrayList<>(AbstractBody.class);
-
-    private GhostContainer ghosts;
-    
-    private EntitySet impulses;
-    
-    private Tick tick = new Tick();
-    private CollisionDispatcher collisionDispatcher = new CollisionDispatcher();
-
-    public BulletSystem() {
-    }
-
-    public PhysicsSpace getPhysicsSpace() {
-        return pSpace;
-    }
-
-    public void setDriver( EntityId id, ControlDriver driver ) {
-        drivers.put(id, driver == null ? nullDriver : driver);
-        driverPending.add(id);
-    }
- 
-    public ControlDriver getDriver( EntityId id ) {
-        return drivers.get(id);
-    }
-    
-    @Override
-    protected void initialize() {
-log.info("BulletSystem.initialize()");    
-        pSpace = new PhysicsSpace(worldMin, worldMax, broadphaseType);
-        pSpace.addTickListener(tick);
-        pSpace.addCollisionListener(collisionDispatcher);
-        
-        ed = getSystem(EntityData.class);
-        shapes = getSystem(CollisionShapes.class);
-        
-        bodies = new BodyContainer(ed);
-        ghosts = new GhostContainer(ed);        
-    }
-    
-    @Override
-    protected void terminate() {
-        pSpace.removeCollisionListener(collisionDispatcher);
-        pSpace.removeTickListener(tick);
-        pSpace.destroy();
-    }
-
-    @Override
-    public void start() {
-log.info("BulletSystem.start()");    
-        super.start();
-        bodies.start();
-        ghosts.start();
-        
-        impulses = ed.getEntities(ShapeInfo.class, Mass.class, Impulse.class);
-    }
-
-
-    @Override
-    public void update( SimTime time ) {
-//log.info("-------------BulletSystem.update()");    
-        super.update(time);
-
-        bodies.update();
-        ghosts.update();
-        impulses.applyChanges();
-        if( !impulses.isEmpty() ) {
-            // We don't really care if the set changed or not, we will
-            // always iterate over all items until they are removed.
-            applyImpulses(impulses);
-        }       
- 
-        if( !driverPending.isEmpty() ) {
-            for( Iterator<EntityId> it = driverPending.iterator(); it.hasNext(); ) {
-                EntityId id = it.next();
-                Body b = bodies.getObject(id);
-                if( b == null ) {
-                    continue;
-                }
-                ControlDriver driver = drivers.get(id);
-                b.setDriver(driver == nullDriver ? null : driver);
-                driverPending.remove(id);
-            }
-        }
-        
-        for( Body b : driverBodies.getArray() ) {
-            b.updateDriver(time);
-        }
-
-//log.info("----pSpace.update()");        
-        pSpace.update((float)(time.getTpf() * speed));        
-        //pSpace.update(active ? tpf * speed : 0);
-//log.info("----distributeEvents()");        
-        pSpace.distributeEvents();
- 
-//log.info("----publish");        
-        for( AbstractBody b : mobs ) {
-            b.publish();
-        }        
-    }
-
-    @Override
-    public void stop() {
-        impulses.release();
-        bodies.stop();
-        ghosts.stop();       
-        super.stop();
-    }    
- 
-    protected void applyImpulses( Set<Entity> impulses ) {
-        for( Entity e : impulses ) {
-            Body body = bodies.getObject(e.getId());
-            if( body == null ) {
-                // Skipping... we may not have created it yet.
-                // Note: we need to be careful not to leak objects by
-                //       partially destroying them such that the impulse
-                //       entities still exist but the physics entities don't.
-                log.warn("Missing body for:" + e.getId());                
-                continue; 
-            }
-            
-            // Apply the impulse
-            body.applyImpulse(e.get(Impulse.class));
-            
-            // Remove the impulse component so the entity drops out of this
-            // set
-            ed.removeComponent(e.getId(), Impulse.class); 
-        }
-    }
-    
-    private EntityBody toEntityBody( PhysicsCollisionObject b ) {
-        if( b instanceof EntityBody ) {
-            return (EntityBody)b;
-        }
-        return null;
-    } 
-    
-    private EntityId toEntityId( PhysicsCollisionObject b ) {
-        if( b instanceof EntityRigidBody ) {
-            return ((EntityRigidBody)b).body.entity.getId();
-        }
-        if( b instanceof EntityGhostObject ) {
-            return ((EntityGhostObject)b).body.entity.getId();
-        }
-        return null;
-    }
-
-    private int getCollisionFlags( PhysicsCollisionObject b ) {
-        if( b instanceof EntityRigidBody ) {
-            return CollisionFlags.COLLIDE_ALL;
-        }
-        if( b instanceof EntityGhostObject ) {
-            return ((EntityGhostObject)b).body.collisionFlags;
-        }
-        return CollisionFlags.COLLIDE_ALL;
-    }
-
-    private int getColliderType( PhysicsCollisionObject b ) {
-        if( b instanceof EntityRigidBody ) {
-            return ((EntityRigidBody)b).body.colliderType;
-        }
-        if( b instanceof EntityGhostObject ) {
-            return ((EntityGhostObject)b).body.colliderType;
-        }
-        return 0;
-    }
-    
-    private class Tick implements PhysicsTickListener {
-        public void prePhysicsTick( PhysicsSpace space, float f ) {
-            //log.info("prePhysicsTick()");
-        }
-
-        public void physicsTick( PhysicsSpace space, float f ) {
-            //log.info("physicsTick()");
-        }
-    }
- 
     private class CollisionDispatcher implements PhysicsCollisionListener { 
         public void collision( PhysicsCollisionEvent event ) {
-//            log.info("A:" + event.getObjectA() 
-//                    + " B:" + event.getObjectB()
-//                    + "\n    type:" + event.getType() 
-//                    + " A wp:" + event.getPositionWorldOnA()
-//                    + " B wp:" + event.getPositionWorldOnB()
-//                    + "\n    B wn:" + event.getNormalWorldOnB()
-//                    + " dist:" + event.getDistance1()
-//                    + "\n    impulse:" + event.getAppliedImpulse()
-//                    + " friction:" + event.getCombinedFriction()
-//                    + " restitution:" + event.getCombinedRestitution());
-            
-            EntityBody body1 = toEntityBody(event.getObjectA());
-            EntityBody body2 = toEntityBody(event.getObjectB()); 
-            // If neither are entity bodies then we don't care about publishing this contact.
-            if( body1 == null && body2 == null ) {
+            EntityPhysicsObject a = toEntityPhysicsObject(event.getObjectA());
+            EntityPhysicsObject b = toEntityPhysicsObject(event.getObjectB());
+            if( a == null && b == null ) {
+                // Nothing to deliver
                 return;
             }
+ 
+            /*log.info("A:" + event.getObjectA() 
+                    + " B:" + event.getObjectB()
+                    + "\n    type:" + event.getType() 
+                    + " A wp:" + event.getPositionWorldOnA()
+                    + " B wp:" + event.getPositionWorldOnB()
+                    + "\n    B wn:" + event.getNormalWorldOnB()
+                    + " dist:" + event.getDistance1());*/
             
-            EntityId id1 = body1.getId(); //toEntityId(event.getObjectA()); 
-            EntityId id2 = body2.getId(); //toEntityId(event.getObjectB());
- 
-            // If both IDs are null then this is not a contact we care about
-            //if( id1 == null && id2 == null ) {
-            //    return;
-            //}
- 
-            // If there are two ends and one of them is a ghost object
-            // then see if we publish
-            if( body1 != null && body2 != null ) {
-            
-                // If one of the parents it the other entity then we don't
-                // care about this contact
-                if( Objects.equals(body1.getParentId(), id2) 
-                    || Objects.equals(body2.getParentId(), id1) ) {
-                    return;
-                }  
-            
-                int flags = body1.getCollisionFlags();
-                if( flags < CollisionFlags.COLLIDE_ALL ) {
-                    // It's a ghost object and doesn't collide with everything
-                    int type = body2.getColliderType();
-//System.out.println("type:" + Integer.toBinaryString(type) + "  flags:" + Integer.toBinaryString(flags));                    
-                    if( (type & flags) == 0 ) {
-//System.out.println("Skipping publishing:" + id1 + " -> " + id2 + " contact");                    
-                        return;
-                    }
-                }                     
-                flags = body2.getCollisionFlags(); 
-                if( flags < CollisionFlags.COLLIDE_ALL ) {
-                    int type = body1.getColliderType();
-//System.out.println("type:" + Integer.toBinaryString(type) + "  flags:" + Integer.toBinaryString(flags));                    
-                    if( (type & flags) == 0 ) {
-//System.out.println("Skipping publishing:" + id1 + " -> " + id2 + " contact");                    
-                        return;
-                    }                     
-                } 
-            }
-            
-//            if( event.isLateralFrictionInitialized() ) { 
-//log.info(id1 + " -> " + id2
-//        + "  initialized:" + event.isLateralFrictionInitialized()  
-//        + "  latFric1:" + event.getLateralFrictionDir1() 
-//        + "  latFric2:" + event.getLateralFrictionDir2()
-//        + "  imp1:" + event.getAppliedImpulseLateral1()    
-//        + "  imp2:" + event.getAppliedImpulseLateral2());
-//            } else {
-//log.info("No lateral friction:" + id1 + " -> " + id2);            
-//            }
-            
-            Vector3f wp = event.getPositionWorldOnB().clone(); 
-            Vector3f normal = event.getNormalWorldOnB().clone();
-            float lateralImpulse = 0;
-            Vector3f lateralFriction = null;
-            
-            // We want id2 to always be the null one if there is one so
-            // see if need to swap. (Not sure bullet will ever give them to us like that)
-            if( id1 == null ) {
-                id1 = id2;
-                body1 = body2;
-                wp.set(event.getPositionWorldOnA());
-                normal.negateLocal();
-                if( event.isLateralFrictionInitialized() ) {
-                    lateralImpulse = event.getAppliedImpulseLateral2(); 
-                    lateralFriction = event.getLateralFrictionDir2().clone();
-                }  
-            } else if( event.isLateralFrictionInitialized() ) {
-                lateralImpulse = event.getAppliedImpulseLateral1();
-                lateralFriction = event.getLateralFrictionDir1().clone();  
-            }
- 
-            // Create a contact entity           
-            Contact c = new Contact(id1, body1 instanceof EntityGhostObject, 
-                                    id2, body2 instanceof EntityGhostObject,
-                                    wp, normal, event.getAppliedImpulse(), lateralImpulse,
-                                    event.getCombinedFriction(), lateralFriction, 
-                                    event.getCombinedRestitution());
-
-            // I think impulse is always positive?            
-            //if( c.getImpulse() > 25 ) {
-            //    System.out.println("*** impact impulse:" + c.getImpulse());
-            //}
-                                    
-            EntityId contactEntity = ed.createEntity();
-            ed.setComponents(contactEntity, c, new Decay(0, 0)); // live one frame
-            ////log.info(contactEntity + " -> contact:" + c);
- 
-            // See if we should also create an impact component
-            // We may decide to fold these together in the future
-            if( body1 != null && body2 != null && !(body1 instanceof EntityGhostObject) && !(body2 instanceof EntityGhostObject) ) {
-//System.out.println("contact:" + c);
-                Vector3f v1 = body1.getLastVelocity();
-                Vector3f v2 = body2.getLastVelocity();
-                //Vector3f relative = p2.subtract(p1);
-                float dot1 = -normal.dot(v1);
-                float dot2 = normal.dot(v2);
-                float energy = dot2 + dot1;
-                if( Math.abs(energy) > 1 ) { //0.5 ) {
-                    energy = Math.max(0, energy);
- 
-                    Impact imp = new Impact(id1, body1.getMassType(),
-                                            id2, body2.getMassType(),
-                                            wp, normal, energy);
-                    ed.setComponents(contactEntity, imp);
-
-log.info("added impact:" + imp);                    
-                    
-                    //System.out.println("velocity dot1:" + dot1 + "  dot2:" + dot2 + "   energy:" + energy);
-                    //System.out.println("   entity1:" + id1 + "  entity2:" + id2); 
-                    //System.out.println("   normal:" + normal);
-                    //System.out.println("   v1:" + v1 + " len:" + v1.length() + "  v2:" + v2 + " len:" + v2.length());
-                    //System.out.println("   lastV1:" + body1.getLastVelocity() + "  lastV2:" + body2.getLastVelocity());
-                    
-                }
-            }
- 
- 
-            if( body1 != null ) {
-                body1.getBody().addContact(c);
-            }           
-            if( body2 != null ) {
-                body2.getBody().addContact(c);
+            for( EntityCollisionListener l : collisionListeners ) {
+                l.collision(a, b, event);
             }
         }
-    }
- 
-    private interface EntityBody {
-        public EntityId getId();
-    
-        public EntityId getParentId();
-    
-        public AbstractBody getBody();
-
-        public int getCollisionFlags();
-        
-        public int getColliderType();
-
-        public int getMassType(); 
-        
-        public Vector3f getLinearVelocity();
-
-        public Vector3f getLastVelocity();
-        
-        public Vector3f getPhysicsLocation(Vector3f target);
-    }
- 
-    private class EntityRigidBody extends PhysicsRigidBody implements EntityBody {
-        private Body body;
-        private Vector3f velocity = new Vector3f();
-        private Vector3f lastVelocity = new Vector3f();
-        
-        public EntityRigidBody( Body body, CollisionShape shape, float mass ) {
-            super(shape, mass);
-            this.body = body;
-        }
- 
-        public EntityId getId() {
-            return body.entity.getId();
-        }
- 
-        public EntityId getParentId() {
-            return null;
-        }
-        
-        public int getCollisionFlags() {
-            return CollisionFlags.COLLIDE_ALL;
-        }
-        
-        public int getColliderType() {
-            return body.colliderType;
-        }
- 
-        public AbstractBody getBody() {
-            return body;
-        }
- 
-        public void refreshVelocity() {
-            lastVelocity.set(getLinearVelocity());
-            //velocity.set(getLinearVelocity());
-            //if( body.entity.getId().getId() >= 172 ) {
-            //    System.out.println("velocity:" + velocity + "  lastVelocity:" + lastVelocity);
-            //}
-        }
-        
-        public Vector3f getLastVelocity() {
-            return lastVelocity;
-        }        
-        
-        @Override
-        public int getMassType() {
-            return body.getMassType();
-        }
-        
-        public String toString() {
-            return "EntityRigidBody[" + body.entity.getId() + "]";
-        }
-    }
- 
-    private class EntityGhostObject extends PhysicsGhostObject implements EntityBody {
-        private GhostBody body;
-        
-        public EntityGhostObject( GhostBody body, CollisionShape shape ) {
-            super(shape);
-            this.body = body;
-        }
- 
-        public EntityId getId() {
-            return body.entity.getId();
-        }
-
-        public EntityId getParentId() {
-            return body.parentEntity;
-        }
-        
-        public int getCollisionFlags() {
-            return body.collisionFlags;
-        }
-        
-        public int getColliderType() {
-            return CollisionFlags.COLLIDE_GHOST;
-        }
-        
-        public AbstractBody getBody() {
-            return body;
-        }
-        
-        @Override
-        public int getMassType() {
-            return Mass.TYPE_INTANGIBLE;
-        }
-        
-        public Vector3f getLinearVelocity() {
-            return Vector3f.ZERO;
-        }
-        
-        public Vector3f getLastVelocity() {
-            return Vector3f.ZERO;
-        }
-        
-        public String toString() {
-            return "EntityGhostObject[" + body.entity.getId() + "]";
-        }
-    }
- 
-    private abstract class AbstractBody {
- 
-        public abstract void publish();
-        
-        public abstract ControlDriver getDriver();
-        
-        public abstract void addContact( Contact c );
-        
-        public abstract int getMassType();
-    }
- 
-    private class Body extends AbstractBody {
-        Entity entity;
-        EntityRigidBody rigidBody;
-        Vector3f vTemp = new Vector3f();
-        Quaternion qTemp = new Quaternion();
-        boolean kinematic;
-        int lastStatus = -1;
-        ControlDriver driver;
-        int colliderType;
-        int massType;
-        
-        public Body( Entity entity ) {
-            this.entity = entity;
-            Mass mass = entity.get(Mass.class);
-            CollisionShape shape = shapes.loadShape(entity.get(ShapeInfo.class));
-
-            this.rigidBody = new EntityRigidBody(this, shape, mass.getMass());
-//log.info("entity:" + entity.getId() + " body:" + rigidBody);        
-            
-            if( mass.getMass() != 0 ) {
-                mobs.add(this);
-                this.colliderType = CollisionFlags.COLLIDE_MOBILE;
-            } else {
-                this.kinematic = true;
-                this.colliderType = CollisionFlags.COLLIDE_KINEMATIC;
-            }
-            this.massType = mass.getType();
- 
-            // Need to set the body's initial position/orientation
-            update();            
-            
-            pSpace.add(rigidBody);
-            
-            // Need a better way to set variable gravity but for now this
-            // will work for today
-            if( massType == Mass.TYPE_PLASMA ) {
-                // Less affected by gravity
-                rigidBody.setGravity(rigidBody.getGravity().mult(0.1f));
-            }            
-        }
-
-        @Override
-        public int getMassType() {
-            return massType;
-        }
- 
-        public void setDriver( ControlDriver driver ) {
-            this.driver = driver;
-            if( driver != null ) {
-                driver.initialize(entity.getId(), rigidBody);
-                driverBodies.add(this);
-            } else {
-                driverBodies.remove(this);
-            }            
-        }
- 
-        @Override
-        public ControlDriver getDriver() {
-            return driver;
-        }
- 
-        public void addContact( Contact c ) {            
-            if( driver != null ) {
-                driver.addContact(c, rigidBody);
-            }                                    
-        }
- 
-        public void updateDriver( SimTime time ) {
-            driver.update(time, rigidBody);   
-        }
- 
-        private int calculateStatus() {
-            if( kinematic ) {
-                return BodyDebugStatus.STATIC; 
-            }
-            return rigidBody.isActive() ? BodyDebugStatus.ACTIVE : BodyDebugStatus.INACTIVE;
-        }
- 
-        **
-         *  Publishes the current state back to the ES.
-         *
-        @Override
-        public void publish() {
-        
-            Position current = ed.getComponent(entity.getId(), Position.class);
- 
-            rigidBody.getPhysicsLocation(vTemp);
-            rigidBody.getPhysicsRotation(qTemp);
-            rigidBody.refreshVelocity();
- 
-            int newStatus = calculateStatus();
-            if( newStatus != lastStatus ) {
-                lastStatus = newStatus;
-                ed.setComponent(entity.getId(), new BodyDebugStatus(lastStatus));
-            }
-            
-            Position next = current != null ? current.change(vTemp, qTemp) : new Position(vTemp.clone(), qTemp.clone());
-            if( current != next ) {
-                ed.setComponent(entity.getId(), next);                
-            }
-        }
-        
-        public void update() { 
-//System.out.println("Updating position for:" + entity.getId());            
-            // Update the physics location from the SpawnPosition
-            Position pos = entity.get(SpawnPosition.class).getPosition();
-            rigidBody.setPhysicsLocation(pos.getLocation());
-            rigidBody.setPhysicsRotation(pos.getOrientation());
-                        
-            if( kinematic ) {
-                publish();
-            }
-        }
- 
-        public void applyImpulse( Impulse imp ) {
-            if( imp.getLinearVelocity() != null ) {
-//System.out.println("Applying linear velocity:" + imp.getLinearVelocity());             
-                rigidBody.setLinearVelocity(imp.getLinearVelocity());
-            }
-            if( imp.getAngularVelocity() != null ) {
-//System.out.println("Applying angular velocity:" + imp.getAngularVelocity());             
-                rigidBody.setAngularVelocity(imp.getAngularVelocity());
-            }
-        }
-        
-        public void release() {
-            pSpace.remove(rigidBody);
-        }
-    }
-    
-    private class BodyContainer extends EntityContainer<Body> {
-
-        public BodyContainer( EntityData ed ) {
-            super(ed, SpawnPosition.class, ShapeInfo.class, Mass.class);
-        }
- 
-        @Override       
-        public Body[] getArray() {
-            return super.getArray();
-        }
- 
-        @Override
-        protected Body addObject( Entity e ) {
-            return new Body(e);
-        }
-
-        @Override
-        protected void updateObject( Body object, Entity e ) {
-            object.update();
-        }
-        
-        @Override
-        protected void removeObject( Body object, Entity e ) {
-            object.release();
-        }
-    
-    }
-
-    private class GhostBody extends AbstractBody {
-        Entity entity;
-        PhysicsGhostObject ghostObject;
-        Vector3f vTemp = new Vector3f();
-        Quaternion qTemp = new Quaternion();
-        int colliderType = CollisionFlags.COLLIDE_GHOST;
-        int collisionFlags;
-        Ghost ghost;
-        EntityId parentEntity;        
-        PhysicsRigidBody parent;
-        Body parentBody;
-        Vector3f relativePosition;
-        Quaternion relativeRotation;
-        
-        public GhostBody( Entity entity ) {
-            this.entity = entity;
-            CollisionShape shape = shapes.loadShape(entity.get(ShapeInfo.class));
-
-            this.ghostObject = new EntityGhostObject(this, shape);
-            this.ghost = entity.get(Ghost.class); 
-            this.collisionFlags = ghost.getCollisionFlags();
-//log.info("entity:" + entity.getId() + " ghost:" + ghostObject);        
- 
-            // Need to set the body's initial position/orientation
-            update();            
-            
-            pSpace.add(ghostObject);            
-        }
- 
-        @Override
-        public int getMassType() {
-            return Mass.TYPE_INTANGIBLE;
-        }
-        
-        @Override
-        public ControlDriver getDriver() {
-            return parentBody == null ? null : parentBody.getDriver();
-        }
-        
-        public void addContact( Contact c ) {            
-            if( parentBody != null ) {
-                parentBody.addContact(c);
-            }                                    
-        }
- 
-        protected boolean updateToParent() {
-            if( parent == null ) {
-                this.parentBody = bodies.getObject(parentEntity);
-                if( parentBody == null ) {
-                    return false; // no parent yet
-                }
-                this.parent = parentBody.rigidBody; 
-            }
- 
-            parent.getPhysicsLocation(vTemp);
-            parent.getPhysicsRotation(qTemp);
-            
-            ghostObject.setPhysicsLocation(vTemp.add(qTemp.mult(relativePosition)));
-            ghostObject.setPhysicsRotation(qTemp.mult(relativeRotation));
- 
-            return true;           
-        }
- 
-        **
-         *  Publishes the current state back to the ES.
-         *
-        public void publish() {
- 
-            if( parentEntity != null ) {
-                if( !updateToParent() ) {
-                    return;
-                } 
-            }
-        
-            Position current = ed.getComponent(entity.getId(), Position.class);
- 
-            ghostObject.getPhysicsLocation(vTemp);
-            ghostObject.getPhysicsRotation(qTemp);
- 
-            ed.setComponent(entity.getId(), new BodyDebugStatus(BodyDebugStatus.GHOST));
-            
-            Position next = current != null ? current.change(vTemp, qTemp) : new Position(vTemp.clone(), qTemp.clone());
-            if( current != next ) {
-                ed.setComponent(entity.getId(), next);                
-            }
-        }
-        
-        public void update() { 
-//System.out.println("Updating ghost position for:" + entity.getId());            
-            if( ghost.getParentEntity() != null ) {
-                this.parentEntity = ghost.getParentEntity();
-                Position pos = entity.get(SpawnPosition.class).getPosition();
-                this.relativePosition = pos.getLocation();
-                this.relativeRotation = pos.getOrientation();
-                mobs.add(this);  
-            } else {            
-                // Update the physics location from the SpawnPosition
-                Position pos = entity.get(SpawnPosition.class).getPosition();
-                ghostObject.setPhysicsLocation(pos.getLocation());
-                ghostObject.setPhysicsRotation(pos.getOrientation());
-                mobs.remove(this);
-            }                        
-            publish();
-        }
- 
-        public void release() {
-            pSpace.remove(ghostObject);
-        }
-    }
-    
-    private class GhostContainer extends EntityContainer<GhostBody> {
-
-        public GhostContainer( EntityData ed ) {
-            super(ed, SpawnPosition.class, ShapeInfo.class, Ghost.class);
-        }
- 
-        @Override       
-        public GhostBody[] getArray() {
-            return super.getArray();
-        }
- 
-        @Override
-        protected GhostBody addObject( Entity e ) {
-            return new GhostBody(e);
-        }
-
-        @Override
-        protected void updateObject( GhostBody object, Entity e ) {
-            object.update();
-        }
-        
-        @Override
-        protected void removeObject( GhostBody object, Entity e ) {
-            object.release();
-        }
-    
     }
     
 }
-*/
+
