@@ -89,8 +89,8 @@ public class SimpleModelFactory implements ModelFactory {
         } else if( "box".equals(name) ) {
             Box mesh = new Box(1, 1, 1);
             Geometry geom = new Geometry(name, mesh);
-            geom.setMaterial(globals.createMaterial(ColorRGBA.Green, true).getMaterial());
-            geom.getMaterial().setColor("Ambient", ColorRGBA.Green);
+            geom.setMaterial(globals.createMaterial(ColorRGBA.Cyan, true).getMaterial());
+            geom.getMaterial().setColor("Ambient", ColorRGBA.Cyan);
             geom.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
             return geom;
         } else if( "floor".equals(name) ) {
@@ -116,18 +116,19 @@ public class SimpleModelFactory implements ModelFactory {
             geom.rotate(FastMath.HALF_PI, 0, 0);
             result.attachChild(geom);
  
+            float headHeight = 0.7f;
             mesh = new Sphere(12, 12, 0.3f);
             geom = new Geometry(name, mesh);
             geom.setMaterial(globals.createMaterial(ColorRGBA.Red, true).getMaterial());
             geom.getMaterial().setColor("Ambient", ColorRGBA.Red);
-            geom.move(0, 0.8f, 0);
+            geom.move(0, headHeight, 0);
             result.attachChild(geom);
 
             mesh = new Sphere(4, 4, 0.1f);
             geom = new Geometry(name, mesh);
             geom.setMaterial(globals.createMaterial(ColorRGBA.White, true).getMaterial());
             geom.getMaterial().setColor("Ambient", ColorRGBA.White);
-            geom.move(0, 0.8f, 0.3f);
+            geom.move(0, headHeight, 0.3f);
             result.attachChild(geom);
                        
             result.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);

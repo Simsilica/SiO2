@@ -272,14 +272,14 @@ public class Main extends SimpleApplication {
                          
         // Create a static ghost object
         EntityId ghost = ed.createEntity();                         
-/*        ed.setComponents(ghost,                           
+        ed.setComponents(ghost,                           
                          ShapeInfo.create("bigSphere", ed),
                          //ModelInfo.create("bigSphere", ed),  // just useful for debugging
                          new SpawnPosition(-5, 1, 5),
-                         new Ghost());*/
+                         new Ghost());
                          
  
-        int wandererCount = 0;
+        int wandererCount = 1;
         Random rand = new Random(0);
         for( int i = 0; i < wandererCount; i++ ) {
         
@@ -298,7 +298,7 @@ public class Main extends SimpleApplication {
             EntityId wandererGhost = ed.createEntity();
             ed.setComponents(wandererGhost,
                             ShapeInfo.create("avatarPerception", ed),
-                            new SpawnPosition(0, 0, 0.4f),
+                            new SpawnPosition(0, 0.05f, 0.4f),
                             new Ghost(wanderer));
         }
     }
