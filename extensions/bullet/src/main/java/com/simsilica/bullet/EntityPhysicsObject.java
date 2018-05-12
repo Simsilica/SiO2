@@ -62,6 +62,14 @@ public interface EntityPhysicsObject<T extends PhysicsCollisionObject> {
     public Vector3f getPhysicsLocation( Vector3f trans );
 
     public Quaternion getPhysicsRotation( Quaternion rot );
+    
+    /**
+     *  Returns the control driver for this object or its parent, if either have
+     *  one.  In other words, if this is an EntityRigidBody then the control driver
+     *  will be returned directly.  If this is an EntityGhostObject that has a
+     *  rigid body parent then the parent's control driver will be returned.
+     */
+    public ControlDriver getControlDriver();
 }
 
 

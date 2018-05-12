@@ -546,6 +546,14 @@ public class BulletSystem extends AbstractGameSystem {
             for( EntityCollisionListener l : collisionListeners ) {
                 l.collision(a, b, event);
             }
+            
+            // Now deliver it to any control drivers if needed
+            if( a.getControlDriver() != null ) {
+                a.getControlDriver().addCollision(b, event);
+            }
+            if( b.getControlDriver() != null ) {
+                b.getControlDriver().addCollision(a, event);
+            }
         }
     }
     

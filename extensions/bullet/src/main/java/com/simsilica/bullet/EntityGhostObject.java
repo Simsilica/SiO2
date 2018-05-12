@@ -90,13 +90,18 @@ public class EntityGhostObject extends PhysicsGhostObject
         return parentId;
     }
  
+    @Override
+    public ControlDriver getControlDriver() {
+        return parent != null ? parent.getControlDriver() : null;
+    }
+ 
     /**
      *  Returns the parent rigid body if this ghost is 'attached' to a parent object.
      */
     public EntityRigidBody getParent() {
         return parent;
     }
- 
+  
     /**
      *  Used internally to set the parent rigid body when this ghost is 'attached' to
      *  a parent object.

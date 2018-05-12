@@ -36,10 +36,11 @@
 
 package com.simsilica.bullet;
 
+import com.jme3.bullet.collision.PhysicsCollisionEvent;
+
 import com.simsilica.es.EntityId;
 import com.simsilica.sim.SimTime;
 
-//import sb.es.Contact;
 
 /**
  *
@@ -50,7 +51,7 @@ public interface ControlDriver {
     public void initialize( EntityRigidBody body );      
     public void update( SimTime time, EntityRigidBody body );
     public void terminate( EntityRigidBody body );
-    //public void addContact( Contact contact, PhysicsRigidBody body );  
+    public void addCollision( EntityPhysicsObject otherBody, PhysicsCollisionEvent event );  
 }
 
 
