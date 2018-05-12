@@ -90,9 +90,9 @@ public class WanderDriver implements ControlDriver {
  
     @Override
     public void addCollision( EntityPhysicsObject otherBody, PhysicsCollisionEvent event ) {
-        if( otherBody instanceof EntityGhostObject ) {
-            return;
-        }
+        //if( otherBody instanceof EntityGhostObject ) {
+        //    return;
+        //}
  
         Vector3f normal = event.getNormalWorldOnB();
  

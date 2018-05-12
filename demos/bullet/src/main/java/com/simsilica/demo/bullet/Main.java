@@ -168,7 +168,7 @@ public class Main extends SimpleApplication {
                     ed.setComponents(result, c,
                                      Decay.duration(systems.getStepTime().getTime(),
                                                     systems.getStepTime().toSimTime(0.1))
-                                     );  
+                                     );
                     return result;                
                 }               
             });
@@ -270,23 +270,32 @@ public class Main extends SimpleApplication {
                          new SpawnPosition(5, 1, 5),
                          new Mass(0));
                          
-        // Create a static ghost object
+        // Create a static ghost object that will collide with _anything_
+        // ...which admittedly is a strange thing to want to do but it is 
+        // supported.
         EntityId ghost = ed.createEntity();                         
         ed.setComponents(ghost,                           
                          ShapeInfo.create("bigSphere", ed),
                          //ModelInfo.create("bigSphere", ed),  // just useful for debugging
                          new SpawnPosition(-5, 1, 5),
-                         new Ghost());
+                         new Ghost(Ghost.COLLIDE_ALL));
+
+        // Another ghost
+        ghost = ed.createEntity();                         
+        ed.setComponents(ghost,                           
+                         ShapeInfo.create("bigSphere", ed),
+                         //ModelInfo.create("bigSphere", ed),  // just useful for debugging
+                         new SpawnPosition(5, 1, 5),
+                         new Ghost(Ghost.COLLIDE_ALL));
                          
  
-        int wandererCount = 1;
+        int wandererCount = 40;
         Random rand = new Random(0);
         for( int i = 0; i < wandererCount; i++ ) {
         
             float x = rand.nextFloat() * 30 - 15;
             float z = rand.nextFloat() * 30 - 15;
-            
-                                       
+                                                   
             // Create a wanderer
             EntityId wanderer = ed.createEntity();
             ed.setComponents(wanderer,                         
@@ -299,7 +308,7 @@ public class Main extends SimpleApplication {
             ed.setComponents(wandererGhost,
                             ShapeInfo.create("avatarPerception", ed),
                             new SpawnPosition(0, 0.05f, 0.4f),
-                            new Ghost(wanderer));
+                            new Ghost(wanderer, Ghost.COLLIDE_BODY));
         }
     }
 
