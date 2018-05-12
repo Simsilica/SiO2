@@ -445,7 +445,7 @@ public class BulletSystem extends AbstractGameSystem {
         protected EntityGhostObject addObject( Entity e ) {
             Ghost ghost = e.get(Ghost.class);
             CollisionShape shape = shapes.getShape(e.get(ShapeInfo.class));           
-            EntityGhostObject result = new EntityGhostObject(e.getId(), shape);
+            EntityGhostObject result = new EntityGhostObject(e.getId(), shape, ghost.getCollisionMask());
             SpawnPosition pos = e.get(SpawnPosition.class);
             if( ghost.getParentEntity() != null ) {
                 // See if the parent body is already created

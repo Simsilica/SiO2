@@ -49,18 +49,72 @@ import com.simsilica.es.EntityId;
  *  @author    Paul Speed
  */
 public class Ghost implements EntityComponent {
+ 
+    /**
+     *  Indicates that the ghost will generate collisions against non-static
+     *  rigid bodies.
+     */
+    public static final byte COLLIDE_DYNAMIC = 0x01;
+     
+    /**
+     *  Indicates that the ghost will generate collisions against static
+     *  rigid bodies.
+     */
+    public static final byte COLLIDE_STATIC = 0x02;
+    
+    /**
+     *  Indicates that the ghost will generate collisions against other ghosts.
+     *  Note: if either ghost has this collision flag then a collision will be
+     *  generated so it's possible that ghosts that do not want collisions with
+     *  other ghosts may still see them.
+     */
+    public static final byte COLLIDE_GHOST = 0x04;
+
+    /**
+     *  Indicates that the ghost will generate collisions against all rigid
+     *  bodies, static or otherwise.
+     */
+    public static final byte COLLIDE_BODY = COLLIDE_DYNAMIC | COLLIDE_STATIC;
+         
+    /**
+     *  Indicates the the ghost will generate collisions against any object.
+     */
+    public static final byte COLLIDE_ALL = (byte)0xff;
     
     private EntityId parent;
-    
+    private byte collisionMask;
+ 
+    /**
+     *  Creates a ghost that will collide with other physical bodies, but not
+     *  other ghosts.
+     */   
     public Ghost() {
+        this(null, COLLIDE_BODY);
     }
     
+    /**
+     *  Creates a ghost that follows the parent and that will collide with other 
+     *  physical bodies, but not other ghosts.
+     */   
     public Ghost( EntityId parent ) {
+        this(parent, COLLIDE_BODY);
+    }
+
+    public Ghost( byte collisionMask ) {
+        this(null, collisionMask);
+    }
+    
+    public Ghost( EntityId parent, byte collisionMask ) {
         this.parent = parent;
+        this.collisionMask = collisionMask;
     }
  
     public EntityId getParentEntity() {
         return parent;
+    }
+ 
+    public byte getCollisionMask() {
+        return collisionMask;
     }
  
     @Override
@@ -68,6 +122,7 @@ public class Ghost implements EntityComponent {
         return MoreObjects.toStringHelper(getClass().getSimpleName())
             .omitNullValues()
             .add("parent", parent)
+            .add("collisionMask", "0b" + Integer.toBinaryString(collisionMask))
             .toString();
     }
 }

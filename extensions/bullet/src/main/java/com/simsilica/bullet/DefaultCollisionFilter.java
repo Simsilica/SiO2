@@ -52,18 +52,27 @@ public class DefaultCollisionFilter implements CollisionFilter {
                                     EntityPhysicsObject object2, 
                                     PhysicsCollisionEvent event ) {
         
-        if( object1 instanceof EntityGhostObject && object2 instanceof EntityGhostObject ) {
-            return true;
-        }                                    
+        //if( object1 instanceof EntityGhostObject && object2 instanceof EntityGhostObject ) {
+        //    return true;
+        //}
+        // It depends on the masking now                                    
 
         if( object1 instanceof EntityGhostObject ) {
-            if( ((EntityGhostObject)object1).getParent() == object2 ) {
+            EntityGhostObject ghost = (EntityGhostObject)object1; 
+            if( ghost.getParent() == object2 ) {
+                return true;
+            }
+            if( !ghost.canCollideWith(object2) ) {
                 return true;
             }
         }
         
         if( object2 instanceof EntityGhostObject ) {
-            if( ((EntityGhostObject)object2).getParent() == object1 ) {
+            EntityGhostObject ghost = (EntityGhostObject)object2; 
+            if( ghost.getParent() == object1 ) {
+                return true;
+            }
+            if( !ghost.canCollideWith(object1) ) {
                 return true;
             }
         }

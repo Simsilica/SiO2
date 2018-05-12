@@ -89,7 +89,7 @@ public class DefaultContactPublisher implements EntityCollisionListener {
     public void collision( EntityPhysicsObject object1, EntityPhysicsObject object2, PhysicsCollisionEvent event ) {
         //System.out.println("collision:" + object1 + " -> " + object2); 
 
-        Contact c = createContact(object1, object2, event);    
+        Contact c = createContact(object1, object2, event);
         createEntity(c);
     }
  

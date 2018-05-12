@@ -56,13 +56,35 @@ public class EntityGhostObject extends PhysicsGhostObject
     private EntityId id;
     private EntityId parentId;
     private EntityRigidBody parent;
+    private byte collisionMask;
     private SpawnPosition parentOffset;
     private Vector3f vTemp;
     private Quaternion qTemp;    
     
-    public EntityGhostObject( EntityId id, CollisionShape shape ) {
+    public EntityGhostObject( EntityId id, CollisionShape shape, byte collisionMask ) {
         super(shape);
         this.id = id;
+        this.collisionMask = collisionMask;
+    }
+
+    public boolean canCollideWith( EntityPhysicsObject object ) {
+        byte mask = 0;
+        if( object instanceof EntityRigidBody ) {
+            mask = ((EntityRigidBody)object).getMass() == 0 ? Ghost.COLLIDE_STATIC : Ghost.COLLIDE_DYNAMIC;   
+        } else if( object instanceof EntityGhostObject ) {
+            // Even if we do not collide with ghosts, if the other ghost does then we'll
+            // return true.
+            if( (((EntityGhostObject)object).collisionMask & Ghost.COLLIDE_GHOST) != 0 ) {
+                return true;
+            } 
+            mask = Ghost.COLLIDE_GHOST;
+        } else if ( object == null ) {
+            // A null object means we hit part of the scene not associated with an
+            // entity... we'll assume it's static for these purposes.  Maybe should
+            // have a separate mask for that.
+            mask = Ghost.COLLIDE_STATIC;
+        }
+        return (mask & collisionMask) != 0;
     }
 
     @Override
