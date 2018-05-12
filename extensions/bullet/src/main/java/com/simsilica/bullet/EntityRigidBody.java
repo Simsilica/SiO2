@@ -56,6 +56,7 @@ public class EntityRigidBody extends PhysicsRigidBody
     private EntityId id;
     private Mass mass;
     private ControlDriver driver;
+    private Vector3f lastVelocity = new Vector3f();
     
     public EntityRigidBody( EntityId id, CollisionShape shape, Mass mass ) {
         super(shape, mass.getMass());
@@ -71,6 +72,11 @@ public class EntityRigidBody extends PhysicsRigidBody
     @Override
     public PhysicsRigidBody getObject() {
         return this;    
+    }
+ 
+    @Override
+    public int getMassType() {
+        return mass.getType();
     }
  
     /**
@@ -99,6 +105,17 @@ public class EntityRigidBody extends PhysicsRigidBody
     @Override
     public Quaternion getPhysicsRotation( Quaternion rot ) {
         return super.getPhysicsRotation(rot);
+    }
+
+    /**
+     *  Stores the current velocity for later retrieval.
+     */
+    public void updateLastVelocity() {
+        lastVelocity.set(getLinearVelocity());
+    }
+    
+    public Vector3f getLastVelocity() {
+        return lastVelocity;
     }
 
     @Override

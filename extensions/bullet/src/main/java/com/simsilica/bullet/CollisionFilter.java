@@ -39,11 +39,18 @@ package com.simsilica.bullet;
 import com.jme3.bullet.collision.*;
 
 /**
- *  Called when there is a collision with an entity-based physical object.
- *
+ *  Can be used by the BulletSystem to filter out contacts
+ *  that should not be delivered to listeners.
+ *  
  *  @author    Paul Speed
  */
-public interface EntityCollisionListener {
+public interface CollisionFilter {
 
-    public void collision( EntityPhysicsObject object1, EntityPhysicsObject object2, PhysicsCollisionEvent event );
+    /**
+     *  Returns true if the specified collision should be skipped, ie: filtered.
+     */
+    public boolean filterCollision( EntityPhysicsObject object1, 
+                                    EntityPhysicsObject object2, 
+                                    PhysicsCollisionEvent event );
+    
 }

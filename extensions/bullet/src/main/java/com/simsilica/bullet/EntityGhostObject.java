@@ -76,6 +76,14 @@ public class EntityGhostObject extends PhysicsGhostObject
     }
  
     /**
+     *  Always returns Mass.TYPE_INTANGIBLE.
+     */
+    @Override
+    public int getMassType() {
+        return Mass.TYPE_INTANGIBLE;
+    }
+  
+    /**
      *  Returns the ID of the parent If this ghost is 'attached' to a parent object. 
      */
     public EntityId getParentId() {

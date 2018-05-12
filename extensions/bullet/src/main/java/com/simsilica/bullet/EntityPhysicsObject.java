@@ -52,6 +52,12 @@ public interface EntityPhysicsObject<T extends PhysicsCollisionObject> {
     public EntityId getId();
     
     public T getObject();
+ 
+    /**
+     *  Returns the "mass type" of the object which will be 0 (ie: Mass.TYPE_INTANGIBLE) 
+     *  for ghost objects and Mass.getType() for rigid bodies. 
+     */
+    public int getMassType();
         
     public Vector3f getPhysicsLocation( Vector3f trans );
 

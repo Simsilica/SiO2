@@ -89,6 +89,7 @@ public class BulletSystem extends AbstractGameSystem {
     private SafeArrayList<PhysicsObjectListener> objectListeners = new SafeArrayList<>(PhysicsObjectListener.class); 
 
     private SafeArrayList<EntityCollisionListener> collisionListeners = new SafeArrayList<>(EntityCollisionListener.class);
+    private CollisionFilter collisionFilter;
     
     private ConcurrentLinkedQueue<ObjectSetup> pendingSetup = new ConcurrentLinkedQueue<>();
 
@@ -153,6 +154,19 @@ public class BulletSystem extends AbstractGameSystem {
     public void removeEntityCollisionListener( EntityCollisionListener l ) {
         collisionListeners.remove(l);
     }
+
+    /**
+     *  Sets a filter that can cause collisions to be skipped before being passed
+     *  to the collision listeners.
+     */
+    public void setCollisionFilter( CollisionFilter collisionFilter ) {
+        this.collisionFilter = collisionFilter;
+    }
+    
+    public CollisionFilter getCollisionFilter() {
+        return collisionFilter;
+    } 
+
 
     /**
      *  Sets the EntityData that this system will use to detect new
@@ -269,6 +283,10 @@ public class BulletSystem extends AbstractGameSystem {
                 }
             
                 objectUpdated(o);
+                
+                if( o instanceof EntityRigidBody ) {
+                    ((EntityRigidBody)o).updateLastVelocity();
+                }
             }
         }
  
@@ -510,6 +528,10 @@ public class BulletSystem extends AbstractGameSystem {
             EntityPhysicsObject b = toEntityPhysicsObject(event.getObjectB());
             if( a == null && b == null ) {
                 // Nothing to deliver
+                return;
+            }
+            
+            if( collisionFilter != null && collisionFilter.filterCollision(a, b, event) ) {
                 return;
             }
  
