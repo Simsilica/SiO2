@@ -157,13 +157,28 @@ public class Main extends SimpleApplication {
         bullet = new BulletSystem();
         bullet.addPhysicsObjectListener(new PositionPublisher(ed));
         bullet.addPhysicsObjectListener(new DebugPhysicsListener(ed));
-        bullet.addEntityCollisionListener(new DefaultContactPublisher(ed));
+        bullet.addEntityCollisionListener(new DefaultContactPublisher(ed) {
+                /**
+                 *  Overridden to give some extra contact decay time so the
+                 *  debug visualization always has a chance to see them. 
+                 */
+                @Override
+                protected EntityId createEntity( Contact c ) {
+                    EntityId result = ed.createEntity();
+                    ed.setComponents(result, c,
+                                     Decay.duration(systems.getStepTime().getTime(),
+                                                    systems.getStepTime().toSimTime(0.1))
+                                     );  
+                    return result;                
+                }               
+            });
         systems.register(BulletSystem.class, bullet);
  
         systems.addSystem(new WanderSystem());
  
         // Add a state we can use to visualize debugging information
         stateManager.attach(new PhysicsDebugState(ed, shapes, new PositionAdapterImpl()));
+        stateManager.attach(new ContactDebugState(ed));
  
         // Register some collision shapes we'll use
         shapes.register(ShapeInfo.create("floor", ed),
@@ -319,14 +334,14 @@ public class Main extends SimpleApplication {
         GuiGlobals.getInstance().getInputMapper().addDelegate(bulletDebug, 
                                                               stateManager.getState(PhysicsDebugState.class), 
                                                               "toggleEnabled");
-        /*                                                      
+                                                              
         FunctionId contactDebug = new FunctionId("Toggle Contact Debug");
         GuiGlobals.getInstance().getInputMapper().map(contactDebug, KeyInput.KEY_F7, KeyInput.KEY_LSHIFT);
         GuiGlobals.getInstance().getInputMapper().map(contactDebug, KeyInput.KEY_F7, KeyInput.KEY_RSHIFT);
         GuiGlobals.getInstance().getInputMapper().addDelegate(contactDebug, 
-                                                              stateManager.getState(DebugContactState.class), 
+                                                              stateManager.getState(ContactDebugState.class), 
                                                               "toggleEnabled");
-        */
+        
         FunctionId shootBall = new FunctionId("Shoot Ball");        
         GuiGlobals.getInstance().getInputMapper().map(shootBall, com.simsilica.lemur.input.Button.MOUSE_BUTTON1);
         GuiGlobals.getInstance().getInputMapper().addDelegate(shootBall, this, "shootBall");
