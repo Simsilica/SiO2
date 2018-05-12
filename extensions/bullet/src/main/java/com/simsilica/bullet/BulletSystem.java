@@ -89,7 +89,7 @@ public class BulletSystem extends AbstractGameSystem {
     private SafeArrayList<PhysicsObjectListener> objectListeners = new SafeArrayList<>(PhysicsObjectListener.class); 
 
     private SafeArrayList<EntityCollisionListener> collisionListeners = new SafeArrayList<>(EntityCollisionListener.class);
-    private CollisionFilter collisionFilter;
+    private CollisionFilter collisionFilter = new DefaultCollisionFilter();
     
     private ConcurrentLinkedQueue<ObjectSetup> pendingSetup = new ConcurrentLinkedQueue<>();
 
