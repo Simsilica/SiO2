@@ -61,6 +61,15 @@ public class Decay implements EntityComponent, PersistentComponent {
         this.startTime = startTime;
         this.endTime = endTime;
     }
+
+    /**
+     *  Creates a decay component with only an end time.  getPercentRemaining()
+     *  will not work sensibly in this case.
+     */
+    public Decay( long endTime ) {
+        this.startTime = endTime;
+        this.endTime = endTime;
+    }
     
     public static Decay duration( long startTime, long duration ) {
         return new Decay(startTime, startTime + duration);
@@ -85,6 +94,9 @@ public class Decay implements EntityComponent, PersistentComponent {
     public double getPercentRemaining( long time ) {
         if( time >= endTime ) {
             return 0;
+        }
+        if( startTime == endTime ) {
+            return 1;
         }
         long remain = endTime - time;        
         double total = endTime - startTime;
