@@ -16,6 +16,10 @@ Version 1.1.1 (unreleased)
     whose Decay time has expired.
 * Added AbstractGameSystem.getSystem(class, failOnMiss) that can optionally
     throw an exception if the system does not exist.
+* Added a MessageState that can be used to display fading messages popping up from
+    the bottom of the screen.
+* Added a basic CommandConsoleState that can be used to allow command entry (can
+    automatically feed the MessageState).
         
 
 Version 1.1.0
