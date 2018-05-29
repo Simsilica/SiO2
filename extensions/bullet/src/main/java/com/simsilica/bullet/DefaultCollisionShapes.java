@@ -71,6 +71,16 @@ public class DefaultCollisionShapes implements CollisionShapes {
     } 
 
     /**
+     *  Creates a CollisionShapes implementation that keeps a simple internal
+     *  thread-safe registry of collision shapes.  An optional EntityData instance
+     *  can be specified to provide better logging.
+     */   
+    public DefaultCollisionShapes( EntityData ed, Function<ShapeInfo, CollisionShape> loadFunction ) {
+        this.ed = ed;
+        this.loadFunction = loadFunction;
+    } 
+
+    /**
      *  Sets the function that will be used to load collision shapes if they
      *  aren't already registered.  Defaults to null which means all requested shapes
      *  must be preloaded.
