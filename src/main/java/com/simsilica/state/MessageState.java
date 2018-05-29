@@ -68,6 +68,7 @@ public class MessageState extends BaseAppState {
     private SafeArrayList<Message> messages = new SafeArrayList<>(Message.class);
  
     private float fadeRate = 1/15f; // 15 seconds
+    private float alphaOverride = 0;
     
     public MessageState() {
     }
@@ -81,6 +82,22 @@ public class MessageState extends BaseAppState {
     
     public float getFadeTime() {
         return fadeRate == 0 ? 0 : 1/fadeRate;
+    }
+    
+    /**
+     *  Overrides the current alpha of all messages in the backlog.  Set to 0
+     *  to go back to the regular fading per-message alpha.  This is really
+     *  setting an alpha that will be compared to the regular alpha, the larger
+     *  of the two will be used.  This means even if you animate fading of the
+     *  backlog messages, newer messages will still be as bright as they should
+     *  be. 
+     */
+    public void setAlphaOverride( float alphaOverride ) {
+        this.alphaOverride = alphaOverride;
+    }
+    
+    public float getAlphaOverride() {
+        return alphaOverride;
     }
     
     public Label addMessage( String message ) {
@@ -205,7 +222,6 @@ public class MessageState extends BaseAppState {
  
     private class Message {
         private float alpha;
-        private float overrideAlpha = 0;
         private Panel label;
  
         public Message( Panel label ) {
@@ -222,7 +238,7 @@ public class MessageState extends BaseAppState {
             if( alpha < 0 ) {
                 alpha = 0;
             }            
-            label.setAlpha(Math.max(alpha, overrideAlpha));
+            label.setAlpha(Math.max(alpha, alphaOverride));
         }                
     }       
 }

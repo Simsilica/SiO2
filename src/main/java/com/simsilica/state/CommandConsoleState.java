@@ -139,6 +139,7 @@ public class CommandConsoleState extends BaseAppState {
         entryPanel.setLocalTranslation(0, pref.y, 0);
         
         getState(MessageState.class).setMessageRootOffset(new Vector3f(0, pref.y, 0));
+        getState(MessageState.class).setAlphaOverride(1);
         
         GuiGlobals.getInstance().requestFocus(entry);
     }
@@ -148,6 +149,7 @@ public class CommandConsoleState extends BaseAppState {
         GuiGlobals.getInstance().requestFocus(null);
         entryPanel.removeFromParent();
         getState(MessageState.class).setMessageRootOffset(new Vector3f(0, 0, 0));
+        getState(MessageState.class).setAlphaOverride(0);
     }
     
     private class NewLine implements KeyActionListener {
