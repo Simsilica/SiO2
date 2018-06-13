@@ -51,6 +51,7 @@ import com.simsilica.lemur.Label;
 import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.SpringGridLayout;
 import com.simsilica.lemur.core.VersionedHolder;
+import com.simsilica.lemur.core.VersionedObject;
 import com.simsilica.lemur.core.VersionedReference;
 import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.style.ElementId;
@@ -93,11 +94,11 @@ public class DebugHudState extends BaseAppState {
     }
  
     /**
-     *  Creates a VersionedHolder to which the caller can provide new
-     *  values and they will show up on the debug HUD.
+     *  Creates a view of an existing VersionedObject that when the 
+     *  caller changes the values they will show up on the debug HUD.
      */
-    public VersionedHolder<String> createDebugValue( String name, Location location ) {
-        DebugView view = new DebugView(name, location);
+    public void createDebugValue( String name, Location location, VersionedReference<String> value ) {
+        DebugView view = new DebugView(name, location, value);
         views.add(view);
         viewIndex.put(name, view);
  
@@ -121,10 +122,18 @@ public class DebugHudState extends BaseAppState {
                 left.addChild(view.nameLabel);
                 left.addChild(view.label, 1);
                 break;
-        }
-        
+        }        
         resetScreenSize();        
-        return view.value;
+    }
+ 
+    /**
+     *  Creates a VersionedHolder to which the caller can provide new
+     *  values and they will show up on the debug HUD.
+     */
+    public VersionedHolder<String> createDebugValue( String name, Location location ) {
+        VersionedHolder<String> result = new VersionedHolder<>("");
+        createDebugValue(name, location, result.createReference());
+        return result;
     }
  
     public void removeDebugValue( String name ) {
@@ -233,24 +242,22 @@ public class DebugHudState extends BaseAppState {
     
     private class DebugView {
         String name;
-        VersionedHolder<String> value;
         VersionedReference<String> ref;
         Label nameLabel;
         Label label;
         Location location;
         
-        public DebugView( String name, Location location ) {
+        public DebugView( String name, Location location, VersionedReference<String> ref ) {
             this.name = name;
             this.location = location;
-            this.value = new VersionedHolder<>("");
-            this.ref = value.createReference();
+            this.ref = ref;
             this.nameLabel = new Label(name + ": ", new ElementId("debug.name.label"));
-            this.label = new Label(value.getObject(), new ElementId("debug.value.label"));
+            this.label = new Label(ref.get(), new ElementId("debug.value.label"));
         }
         
         public void update() {
-            if( ref.update() ) {
-                label.setText(value.getObject());
+            if( ref.update() ) {            
+                label.setText(ref.get());
             }
         }
     }

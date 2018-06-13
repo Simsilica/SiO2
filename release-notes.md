@@ -20,6 +20,8 @@ Version 1.1.1 (unreleased)
     the bottom of the screen.
 * Added a basic CommandConsoleState that can be used to allow command entry (can
     automatically feed the MessageState).
+* Modified DebugHudState to allow user-supplied VersionedObjects to be displayed
+    instead of forcing them to be created through the API.    
         
 
 Version 1.1.0
