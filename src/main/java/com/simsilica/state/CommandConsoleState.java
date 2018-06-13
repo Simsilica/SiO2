@@ -78,6 +78,8 @@ public class CommandConsoleState extends BaseAppState {
     
     private CommandEntry shell = new DefaultCommandEntry();
     
+    private boolean alwaysOpen = false;
+    
     public CommandConsoleState() {
         setEnabled(false);
     }
@@ -95,6 +97,15 @@ public class CommandConsoleState extends BaseAppState {
  
     public void toggleConsole() {
         setEnabled(!isEnabled());
+    }
+    
+    public void setAlwaysOpen( boolean alwaysOpen ) {
+        this.alwaysOpen = alwaysOpen;
+        setEnabled(alwaysOpen);
+    }
+    
+    public boolean isAlwaysOpen() {
+        return alwaysOpen;
     } 
         
     @Override
@@ -162,7 +173,7 @@ public class CommandConsoleState extends BaseAppState {
             //getState(MessageState.class).addMessage(text, ColorRGBA.White);
             shell.runCommand(text);
         
-            setEnabled(false);
+            setEnabled(alwaysOpen);
         }
     }
 
@@ -170,7 +181,7 @@ public class CommandConsoleState extends BaseAppState {
         @Override
         public void keyAction( TextEntryComponent source, KeyAction key ) {        
             entry.setText("");
-            setEnabled(false);
+            setEnabled(alwaysOpen);
         }
     }
                 
