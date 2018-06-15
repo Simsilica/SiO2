@@ -175,6 +175,7 @@ public class EntityGhostObject extends PhysicsGhostObject
         return MoreObjects.toStringHelper(getClass().getSimpleName())
             .omitNullValues()
             .add("id", id)
+            .add("shape", getCollisionShape())
             .toString();
     }     
 }
