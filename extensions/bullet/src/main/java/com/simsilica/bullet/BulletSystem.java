@@ -64,6 +64,8 @@ public class BulletSystem extends AbstractGameSystem {
 
     static Logger log = LoggerFactory.getLogger(BulletSystem.class);
 
+    private Thread baseThread;
+
     private PhysicsSpace pSpace;
     private CollisionDispatcher collisionDispatcher = new CollisionDispatcher();
     
@@ -212,6 +214,8 @@ public class BulletSystem extends AbstractGameSystem {
         if( shapes == null ) {
             shapes = getSystem(CollisionShapes.class, true);
         }
+ 
+        baseThread = Thread.currentThread();
         
         pSpace = new PhysicsSpace(worldMin, worldMax, broadphaseType);
         pSpace.addCollisionListener(collisionDispatcher);
@@ -236,6 +240,12 @@ public class BulletSystem extends AbstractGameSystem {
 
     @Override
     public void update( SimTime time ) {
+    
+        if( baseThread != Thread.currentThread() ) {
+            throw new IllegalStateException("The bullet system must be updated from the same thread it was initialized."
+                                            + " initialized from:" + baseThread + " updated from:" + Thread.currentThread());
+        }
+    
         super.update(time);
         
         startFrame(time);
@@ -402,6 +412,9 @@ public class BulletSystem extends AbstractGameSystem {
             result.setPhysicsLocation(pos.getLocation());
             result.setPhysicsRotation(pos.getOrientation());
 
+            if( log.isTraceEnabled() ) {
+                log.trace("pSpace.adding:" + result);
+            } 
             pSpace.add(result);
  
             objectAdded(result);
@@ -421,6 +434,9 @@ public class BulletSystem extends AbstractGameSystem {
         
         @Override
         protected void removeObject( EntityRigidBody object, Entity e ) {
+            if( log.isTraceEnabled() ) {
+                log.trace("pSpace.removing:" + object);
+            } 
             pSpace.remove(object);
             
             // Could be optimized to check if it's a mob first
