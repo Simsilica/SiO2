@@ -22,6 +22,8 @@ Version 1.1.1 (unreleased)
     automatically feed the MessageState).
 * Modified DebugHudState to allow user-supplied VersionedObjects to be displayed
     instead of forcing them to be created through the API.    
+* Added a CameraState to make it easier to independently set camera parameters like
+    FOV, near, and far plane values.
         
 
 Version 1.1.0
