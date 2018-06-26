@@ -60,12 +60,12 @@ public class PositionAdapterImpl implements PositionAdapter {
     }
         
     @Override  
-    public Vector3f getLocation( Entity e ) {
+    public Vector3f getLocation( Entity e, int status ) {
         return e.get(Position.class).getLocation();
     }
     
     @Override  
-    public Quaternion getOrientation( Entity e ) {
+    public Quaternion getOrientation( Entity e, int status ) {
         return e.get(Position.class).getOrientation();
     } 
 }

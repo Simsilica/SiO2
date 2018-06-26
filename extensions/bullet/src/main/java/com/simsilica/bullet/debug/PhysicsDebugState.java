@@ -47,8 +47,7 @@ import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.util.DebugShapeFactory;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState.BlendMode;
-import com.jme3.math.ColorRGBA;
-import com.jme3.math.Vector3f;
+import com.jme3.math.*;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.*;
 import com.jme3.scene.shape.Box;
@@ -166,11 +165,15 @@ public class PhysicsDebugState extends BaseAppState {
     protected void onEnable() {
         ((SimpleApplication)getApplication()).getRootNode().attachChild(debugRoot);       
         bodies.start();
+        log.info("PhysicsDebugState enabled");
     }        
     
     @Override 
     public void update( float tpf ) {
         bodies.update();
+        for( BodyDebugView view : bodies.getArray() ) {
+            view.updateDynamicPosition();
+        }
  
         clipUpdateTimer -= tpf;
         if( clipUpdateTimer < 0 ) {
@@ -183,6 +186,7 @@ public class PhysicsDebugState extends BaseAppState {
     protected void onDisable() {
         bodies.stop();
         debugRoot.removeFromParent();
+        log.info("PhysicsDebugState disabled");
     }
  
     protected void updateClipping() {
@@ -198,13 +202,28 @@ public class PhysicsDebugState extends BaseAppState {
         }
     }
  
-    private Spatial getDebugShape( CollisionShape shape, boolean create ) {
-        Spatial result = debugShapeCache.get(shape);
-        if( result == null && create ) {
-            result = DebugShapeFactory.getDebugShape(shape);
-            debugShapeCache.put(shape, result); 
+    private Spatial getDebugShape( EntityId id, CollisionShape shape, boolean create ) {
+        try {
+            Spatial result = debugShapeCache.get(shape);
+            if( result == null && create ) {
+                result = DebugShapeFactory.getDebugShape(shape);
+                debugShapeCache.put(shape, result); 
+            }
+            return result.clone();
+        } catch( Exception e ) {
+            log.error("Error creating debug shape for:" + id + "  CollisionShape:" + shape);
+            Box b = new Box(0.1f, 0.1f, 0.1f);
+            Node node = new Node("errorShape");
+            Geometry geom;
+            geom = new Geometry("errorBox", b);
+            node.attachChild(geom);
+            
+            geom = new Geometry("errorBox", b);
+            geom.rotate(FastMath.QUARTER_PI, FastMath.QUARTER_PI, 0);
+            node.attachChild(geom);
+            
+            return node;
         }
-        return result.clone();
     }     
      
     private class BodyDebugView {
@@ -215,8 +234,9 @@ public class PhysicsDebugState extends BaseAppState {
  
         public BodyDebugView( Entity entity ) {
             this.entity = entity;
-            this.shape = shapes.getShape(entity.get(ShapeInfo.class));           
-            this.spatial = getDebugShape(shape, true); 
+            this.shape = shapes.getShape(entity.get(ShapeInfo.class));
+            
+            this.spatial = getDebugShape(entity.getId(), shape, true); 
             spatial.setMaterial(inactive);
             spatial.setQueueBucket(Bucket.Translucent);            
             
@@ -227,10 +247,18 @@ public class PhysicsDebugState extends BaseAppState {
         }
         
         public void update() {
-            spatial.setLocalTranslation(positionAdapter.getLocation(entity));
-            spatial.setLocalRotation(positionAdapter.getOrientation(entity)); 
+            spatial.setLocalTranslation(positionAdapter.getLocation(entity, status));
+            spatial.setLocalRotation(positionAdapter.getOrientation(entity, status)); 
             BodyDebugStatus status = entity.get(BodyDebugStatus.class);
             setStatus(status.getStatus());
+        }
+ 
+        public void updateDynamicPosition() {
+            if( status == BodyDebugStatus.INACTIVE || status == BodyDebugStatus.STATIC ) {
+                return;
+            }
+            spatial.setLocalTranslation(positionAdapter.getLocation(entity, status));
+            spatial.setLocalRotation(positionAdapter.getOrientation(entity, status)); 
         }
         
         protected void setStatus( int status ) {
@@ -277,6 +305,7 @@ public class PhysicsDebugState extends BaseAppState {
  
         @Override
         protected BodyDebugView addObject( Entity e ) {
+log.info("addObject(" + e + ")");        
             return new BodyDebugView(e);
         }
 

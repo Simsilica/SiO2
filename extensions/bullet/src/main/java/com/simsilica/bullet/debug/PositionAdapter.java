@@ -52,6 +52,6 @@ import com.simsilica.es.EntityComponent;
  */
 public interface PositionAdapter {   
     public Class<? extends EntityComponent> getComponentType();    
-    public Vector3f getLocation( Entity e );
-    public Quaternion getOrientation( Entity e ); 
+    public Vector3f getLocation( Entity e, int status );
+    public Quaternion getOrientation( Entity e, int status ); 
 }
