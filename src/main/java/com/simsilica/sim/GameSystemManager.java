@@ -253,7 +253,19 @@ public class GameSystemManager {
      *  register() method.
      */
     public <T> T get( Class<T> type ) {
+        return get(type, false);
+    }
+    
+    /**
+     *  Returns a system-level object preoviously registered using the
+     *  register() method.  If failOnMiss is true then an IllegalArgumentException
+     *  is thrown if the system is not registered.
+     */
+    public <T> T get( Class<T> type, boolean failOnMiss ) {
         Object result = index.get(type);
+        if( result == null && failOnMiss ) {
+            throw new IllegalArgumentException("System not found for:" + type);
+        }
         return type.cast(result);
     }
     

@@ -14,6 +14,8 @@ Version 1.1.1 (unreleased)
     entity.
 * Added a standard sim.common.DecaySystem for automatically destroying entities
     whose Decay time has expired.
+* Added GameSystemManager.get(class, failOnMiss) that can optionally throw an
+    exception if the system does not exist.    
 * Added AbstractGameSystem.getSystem(class, failOnMiss) that can optionally
     throw an exception if the system does not exist.
 * Added a MessageState that can be used to display fading messages popping up from
