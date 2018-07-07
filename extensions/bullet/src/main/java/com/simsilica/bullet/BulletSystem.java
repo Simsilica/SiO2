@@ -98,6 +98,10 @@ public class BulletSystem extends AbstractGameSystem {
     public BulletSystem() {
     }
 
+public PhysicsSpace getSpace() {
+    return pSpace;
+}
+
     /**
      *  Initializes an EntityPhysicsObjects using the specified function.  This
      *  is useful for two reasons: 1) it can be called before the object actually
@@ -429,7 +433,18 @@ public class BulletSystem extends AbstractGameSystem {
         }
 
         @Override
-        protected void updateObject( EntityRigidBody object, Entity e ) {            
+        protected void updateObject( EntityRigidBody object, Entity e ) {
+            Mass mass = e.get(Mass.class);
+            if( mass.getMass() == 0 ) {
+                // See if it's the spawn position that has moved
+                SpawnPosition pos = e.get(SpawnPosition.class);
+                if( log.isTraceEnabled() ) {
+                    log.trace("Moving " + object + "  to:" + pos);
+                }            
+                object.setPhysicsLocation(pos.getLocation());
+                object.setPhysicsRotation(pos.getOrientation());
+                objectUpdated(object);
+            }            
         }
         
         @Override
