@@ -302,6 +302,14 @@ public PhysicsSpace getSpace() {
                     ((EntityRigidBody)o).updateLastVelocity();
                 }
             }
+            
+            // Distribute updates for bodies that have drivers but are not
+            // normal mobs.
+            for( EntityRigidBody b : driverBodies.getArray() ) {
+                if( b.getMass() == 0 ) {
+                    objectUpdated(b);
+                }
+            }
         }
  
         endFrame();        
