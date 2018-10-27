@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn" name="MyApp" packages="">
+  <Appenders>
+    <RollingFile name="RollingFile" fileName="application.log" ignoreExceptions="false"
+                 filePattern="logs/$${date:yyyy-MM}/application-%d{MM-dd-yyyy}-%i.log.gz">
+      <PatternLayout>
+        <Pattern>%d{ABSOLUTE} %-5p (%t) [%c{1}] %m%n</Pattern>
+      </PatternLayout>
+      <OnStartupTriggeringPolicy />
+    </RollingFile>
+
+    <Console name="STDOUT" target="SYSTEM_OUT" ignoreExceptions="false">
+      <!--<PatternLayout pattern="%d{ABSOLUTE} %-5p (%t) [%c{1}] %m%n"/>-->
+      <PatternLayout pattern="%highlight{%-5p}{WARN=bright yellow, INFO=bright green, TRACE=blue} %style{[%-12.-12c{1}]}{cyan} %highlight{%m%n}{FATAL=red blink, ERROR=Bright red, WARN=bright yellow, INFO=green, DEBUG=bright black, TRACE=blue}"/>
+    </Console>
+  </Appenders>
+  <Loggers>
+    <Logger name="example" level="DEBUG"/>
+    <Logger name="com.simsilica.sim" level="DEBUG"/>
+    <Logger name="com.jme3.network.message" level="DEBUG"/>
+    <Logger name="com.jme3.network.base.MessageProtocol" level="DEBUG"/>
+    <Logger name="com.jme3.network.base.DefaultServer" level="DEBUG" />
+    <Logger name="com.jme3.network.base.DefaultClient" level="DEBUG" />
+
+    <!-- <Logger name="com.simsilica.lemur.input.InputMapper" level="TRACE"/> -->
+    <Logger name="com.simsilica.lemur.CallMethodAction" level="DEBUG"/>
+    <Root level="INFO">
+      <AppenderRef ref="RollingFile"/>
+      <AppenderRef ref="STDOUT"/>
+    </Root>
+  </Loggers>
+</Configuration>
