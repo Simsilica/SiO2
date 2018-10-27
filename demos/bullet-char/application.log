@@ -1,6 +1,0 @@
-01:52:41,625 INFO  (jME3 Main) [GuiGlobals] Initializing GuiGlobals with:com.simsilica.lemur.GuiGlobals@65b0e5
-01:52:41,640 INFO  (jME3 Main) [GuiGlobals] Lemur build date:20161119
-01:52:41,640 INFO  (jME3 Main) [BaseStyles] loadStyleResource(com/simsilica/lemur/style/base/glass-styles.groovy)
-01:52:42,031 INFO  (jME3 Main) [BaseStyles] Loading base resource:jar:file:/C:/Documents%20and%20Settings/PSpeed/.gradle/caches/modules-2/files-2.1/com.simsilica/lemur/1.9.1/4cf0982db2f5e436577ac723607c8a5d432ac3f1/lemur-1.9.1.jar!/com/simsilica/lemur/style/base/glass-styles.groovy
-01:52:42,531 INFO  (jME3 Main) [BaseStyles] Loading extension resources for:com/simsilica/lemur/style/base/glass-styles.groovy
-01:52:42,531 INFO  (jME3 Main) [BaseStyles] Loading extension resource:jar:file:/C:/Documents%20and%20Settings/PSpeed/.gradle/caches/modules-2/files-2.1/com.simsilica/lemur-proto/1.8.1/c6635fe7ce1dc9abe7283f175c0e62ab3a905fec/lemur-proto-1.8.1.jar!/com/simsilica/lemur/style/base/glass-styles.groovy
