@@ -40,8 +40,9 @@ import org.slf4j.*;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
-import com.jme3.renderer.Camera;
 import com.jme3.math.*;
+import com.jme3.renderer.Camera;
+import com.jme3.scene.Spatial;
 
 import com.simsilica.es.*;
 import com.simsilica.mathd.*;
@@ -65,6 +66,7 @@ public class LockedThirdPersonState extends BaseAppState
     private EntityData ed;
     private EntityId playerId;
     private WatchedEntity player;
+    private Spatial playerAvatar;
 
     private InputMapper inputMapper;
     private Camera camera;
@@ -134,6 +136,7 @@ public class LockedThirdPersonState extends BaseAppState
     @Override
     protected void onEnable() {    
         player = ed.watchEntity(playerId, Position.class);
+        
 
         inputMapper.activateGroup(PlayerMovementFunctions.G_MOVEMENT);        
     }
@@ -141,30 +144,38 @@ public class LockedThirdPersonState extends BaseAppState
     @Override
     public void update( float tpf ) {
  
+        if( playerAvatar == null ) {
+            // We'll actually sync directly to the model so that we
+            // don't jitter in relation
+            playerAvatar = getState(ModelViewState.class).getModel(playerId);
+        }
+ 
         // In this camera mode, movement is relative to the facing direction
         move.set(side * speed, 0, forward * speed);
         facing.mult(move, move);
         
         player.set(new CharInput(move, facing, (byte)flags));   
-    
-        if( player.applyChanges() ) {
+
+        Quaternion camRot = new Quaternion().fromAngles((float)-pitch, (float)yaw, 0); 
+        camera.setRotation(camRot);
+ 
+        boolean changed = player.applyChanges();
+        if( playerAvatar != null ) {
+            Vector3f loc = playerAvatar.getWorldTranslation().clone();
+            loc.subtractLocal(camRot.mult(Vector3f.UNIT_Z.mult(cameraDistance)));
+            camera.setLocation(loc);            
+        } else if( changed ) {
+            log.warn("Synching to entity instead of spatial.");        
+            // We haven't gotten a player model yet so just sync directly to the
+            // entity 
             Position pos = player.get(Position.class);
             if( pos == null ) {
-                return;
+                log.warn("Entity has no position.");
+            } else {
+                Vector3f loc = pos.getLocation().add(headOffset);
+                loc.subtractLocal(camRot.mult(Vector3f.UNIT_Z.mult(cameraDistance)));
+                camera.setLocation(loc);
             }
-    
-            //Quaternion quat = pos.getOrientation();
-            //float[] angles = quat.toAngles(null);
- 
-            Quaternion pitchRot = new Quaternion().fromAngles((float)-pitch, (float)yaw, 0); //angles[1], 0);
-            //quat = pitchRot; //quat.mult(pitchRot);
-            Quaternion camRot = pitchRot;           
-            
-            camera.setRotation(camRot);
- 
-            Vector3f loc = pos.getLocation().add(headOffset);
-            loc.subtractLocal(camRot.mult(Vector3f.UNIT_Z.mult(cameraDistance)));
-            camera.setLocation(loc);
         }
     }
     
@@ -233,17 +244,9 @@ public class LockedThirdPersonState extends BaseAppState
             facing.fromAngles(0, yaw, 0);
         } else if( func == PlayerMovementFunctions.F_MOVE ) {
             this.forward = value;
-            return;
         } else if( func == PlayerMovementFunctions.F_STRAFE ) {
             this.side = -value;
-            return;
-        } /*else if( func == PlayerMovementFunctions.F_ELEVATE ) {
-            this.elevation = value;
-            return;
-        } else {
-            return;
-        }
-        updateFacing();*/        
+        } 
     }
     
 }
