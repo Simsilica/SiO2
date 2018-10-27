@@ -78,8 +78,10 @@ public class CharInputDriver implements ControlDriver {
  
     private Vector3f gravity = new Vector3f(0, -20, 0);   
     private float groundImpulse = 200;
-    private float airImpulse = 0;
-    
+    private float airImpulse = 50; // 0;
+    private float jumpForce = 10;
+    private boolean shortJumps = true;
+    private boolean autoBounce = true;
     
     public CharInputDriver( Entity entity ) {
         this.entity = entity;
@@ -129,6 +131,7 @@ public class CharInputDriver implements ControlDriver {
         // velocity tracking.  So for relative ground velocity tracking, 
         // check to see if our colliding object is really us.        
         if( us == body ) {
+//System.out.println("++++ contact:" + otherBody);        
 // Just until we can tweak our ghost size more appropriately        
 canJump = true;        
             PhysicsRigidBody rb = (PhysicsRigidBody)otherBody;
@@ -136,9 +139,6 @@ canJump = true;
  
             groundVelocity.addLocal(vTemp);
             groundContactCount++;
-//System.out.println("A:" + event.getObjectA() + "  B:" + event.getObjectB());
-//System.out.println("us:" + body + "   them:" + otherBody);        
-//            System.out.println("Normal:" + normal + "  isUp:" + isUp + " mass:" + rb.getMass() + "  velocity:" + vTemp);    
         }        
     }
  
@@ -161,7 +161,7 @@ canJump = true;
         calculateCollisionData();
     
         //body.getPhysicsRotation(qTemp);
-        body.getAngularVelocity(vTemp);
+        //body.getAngularVelocity(vTemp);
         
         // Kill any non-yaw orientation
         /*qTemp.toAngles(angles);
@@ -172,12 +172,18 @@ canJump = true;
         }*/
         
         // Kill any non-yaw rotation
-        if( vTemp.x != 0 && vTemp.z != 0 ) {
-            vTemp.x = 0;
-            vTemp.y *= 0.95f; // Let's see if we can dampen the spinning
-            vTemp.z = 0;
-            body.setAngularVelocity(vTemp);
-        }
+        //if( vTemp.x != 0 && vTemp.z != 0 ) {
+        //    vTemp.x = 0;
+        //    vTemp.y *= 0.95f; // Let's see if we can dampen the spinning
+        //    vTemp.z = 0;
+        //    body.setAngularVelocity(vTemp);
+        //}
+        // The above is unnecessary because we are going to force
+        // orientation anyway.
+        // Note: for non-capsule shapes something else would have to
+        // be done so that the environment affects orientation.
+        // Player input orientation then becomes more of a suggestion
+        // that needs to be reconciled with environment influences.
         
         //System.out.println("input:" + input);
         if( input == null ) {
@@ -194,6 +200,7 @@ canJump = true;
         // See how much our velocity has to change to reach the
         // desired velocity
         body.getLinearVelocity(vTemp);
+        float verticalVelocity = vTemp.y - groundVelocity.y;
 
 //System.out.println("current:" + vTemp + "  desired:" + desiredVelocity + "  delta:" + desiredVelocity.subtract(vTemp));
 
@@ -203,30 +210,30 @@ canJump = true;
         force.y = 0;
         if( groundContactCount > 0 ) {
             force.multLocal(groundImpulse);
-System.out.println("   groundForce:" + force);         
+//System.out.println("   groundForce:" + force + "  vTemp:" + vTemp);         
         } else {
             force.multLocal(airImpulse);
-System.out.println("   airForce:" + force);         
+//System.out.println("   airForce:" + force + "  vTemp:" + vTemp);                  
         }
         body.applyCentralForce(force);        
  
         Quatd facing = input.getFacing();
         qTemp.set((float)facing.x, (float)facing.y, (float)facing.z, (float)facing.w);
         body.setPhysicsRotation(qTemp);
- 
         if( input.isJumping() ) {
             if( canJump && !isJumping ) {
-System.out.println("JUMP!");        
-                vTemp.addLocal(0, 10 + groundVelocity.y, 0);
+System.out.println("-------------------JUMP!   vTemp.y:" + vTemp.y);
+                // Clear any downward momentum we might still have
+                vTemp.y = groundVelocity.y;                        
+                vTemp.addLocal(0, jumpForce, 0);
                 body.setLinearVelocity(vTemp);
                 isJumping = true;   
-            } else if( canJump && vTemp.y < 0 ) {
-                // Maybe we should use a frame counter
-                isJumping = false;
             } 
         } else {
-            if( isJumping ) {
-System.out.println("KILL JUMP!");        
+            // If the player releases early and we allow short jumps
+            // then kill some of the momentum
+            if( shortJumps && isJumping && verticalVelocity > 0 ) {
+System.out.println("---------------KILL JUMP!");        
                 // Then for 'short jumps' support we should 
                 // set a maximum upward velocity
                 vTemp.y = Math.min(vTemp.y, groundVelocity.y + 2);
@@ -234,12 +241,18 @@ System.out.println("KILL JUMP!");
             }
             isJumping = false;            
         }
-           
-System.out.println("current velocity:" + vTemp);        
-        //Vec3d move = input.getMove();
-        //vTemp.set((float)move.x * 100, (float)move.y * 100, (float)move.z * 100);
-        //body.applyCentralForce(vTemp);
  
+//body.getLinearVelocity(vTemp); 
+//System.out.println("current velocity:" + vTemp + "   groundVelocity:" + groundVelocity);        
+//System.out.println("isJumping:" + isJumping + "  verticalVelocity:" + verticalVelocity + "    vTemp:" + vTemp + "  groundVel:" + groundVelocity.y);
+        // See if we are actually falling and no longer jumping
+        // because if we autoBounce then we might be ready to jump again
+        // soon.
+        if( autoBounce && isJumping && (vTemp.y - groundVelocity.y < 0) ) {
+            isJumping = false;
+System.out.println("---------------Jump done, faling.");            
+        }
+           
         // Get ready for the next set of collision events       
         invalidateCollisionData();        
     }
