@@ -76,6 +76,7 @@ public class CharInputDriver implements ControlDriver {
     
     private Vector3f force = new Vector3f();
  
+    private CharPhysics charPhysics;
     private Vector3f gravity = new Vector3f(0, -20, 0);   
     private float groundImpulse = 200;
     private float airImpulse = 50; // 0;
@@ -83,8 +84,9 @@ public class CharInputDriver implements ControlDriver {
     private boolean shortJumps = true;
     private boolean autoBounce = true;
     
-    public CharInputDriver( Entity entity ) {
+    public CharInputDriver( Entity entity, CharPhysics charPhysics ) {
         this.entity = entity;
+        setCharPhysics(charPhysics);
     }
 
     public void setInput( CharInput input ) {
@@ -94,11 +96,28 @@ public class CharInputDriver implements ControlDriver {
     public CharInput getInput() {
         return input;
     }
+    
+    public void setCharPhysics( CharPhysics charPhysics ) {
+        this.charPhysics = charPhysics;
+        if( body != null ) {
+            // Make sure gravity is current
+            body.setGravity(charPhysics.gravity);
+        }
+        this.groundImpulse = charPhysics.groundImpulse;
+        this.airImpulse = charPhysics.airImpulse;
+        this.jumpForce = charPhysics.jumpForce;
+        this.shortJumps = charPhysics.shortJumps;
+        this.autoBounce = charPhysics.autoBounce;
+    }
+    
+    public CharPhysics getCharPhysics() {
+        return charPhysics;
+    }
 
     @Override
     public void initialize( EntityRigidBody body ) {
         this.body = body;
-        body.setGravity(gravity);
+        body.setGravity(charPhysics.gravity);
     }
   
     @Override
@@ -161,7 +180,7 @@ canJump = true;
         calculateCollisionData();
     
         //body.getPhysicsRotation(qTemp);
-        //body.getAngularVelocity(vTemp);
+        body.getAngularVelocity(vTemp);
         
         // Kill any non-yaw orientation
         /*qTemp.toAngles(angles);
@@ -170,20 +189,23 @@ canJump = true;
             angles[2] = 0;
             body.setPhysicsRotation(qTemp.fromAngles(angles));
         }*/
-        
-        // Kill any non-yaw rotation
-        //if( vTemp.x != 0 && vTemp.z != 0 ) {
-        //    vTemp.x = 0;
-        //    vTemp.y *= 0.95f; // Let's see if we can dampen the spinning
-        //    vTemp.z = 0;
-        //    body.setAngularVelocity(vTemp);
-        //}
         // The above is unnecessary because we are going to force
         // orientation anyway.
         // Note: for non-capsule shapes something else would have to
         // be done so that the environment affects orientation.
         // Player input orientation then becomes more of a suggestion
         // that needs to be reconciled with environment influences.
+        //
+        // Note: apparently killing angular velocity is actually needed.
+        // Otherwise we tip and intercollide with ramps.
+        
+        // Kill any non-yaw rotation
+        if( vTemp.x != 0 && vTemp.z != 0 ) {
+            vTemp.x = 0;
+            vTemp.y *= 0.95f; // Let's see if we can dampen the spinning
+            vTemp.z = 0;
+            body.setAngularVelocity(vTemp);
+        }
         
         //System.out.println("input:" + input);
         if( input == null ) {

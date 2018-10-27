@@ -52,9 +52,25 @@ public class CharInputSystem extends AbstractGameSystem {
     private EntityData ed;
     private BulletSystem bullet;
 
-    private CharInputContainer wanderers;
+    private CharInputContainer characters;
+
+    // Right now there is only one for all characters... which 
+    // is generally only players anyway.
+    private CharPhysics charPhysics = new CharPhysics();
+    private boolean refreshSettings = false;
 
     public CharInputSystem() {
+    }
+
+    public void setCharPhysics( CharPhysics charPhysics ) {
+        this.charPhysics = charPhysics;
+        
+        // Update the drivers... this is not really thread safe
+        this.refreshSettings = true;
+    }
+
+    public CharPhysics getCharPhysics() {
+        return charPhysics;
     }
 
     @Override
@@ -62,7 +78,7 @@ public class CharInputSystem extends AbstractGameSystem {
         ed = getSystem(EntityData.class, true);
         bullet = getSystem(BulletSystem.class, true);
         
-        wanderers = new CharInputContainer(ed);
+        characters = new CharInputContainer(ed);
     }
     
     @Override
@@ -72,19 +88,25 @@ public class CharInputSystem extends AbstractGameSystem {
     @Override
     public void start() {
         super.start();
-        wanderers.start();
+        characters.start();
     }
 
 
     @Override
     public void update( SimTime time ) {
         super.update(time);
-        wanderers.update();
+        if( refreshSettings ) {
+            refreshSettings = false;
+            for( CharInputDriver driver : characters.getArray() ) {
+                driver.setCharPhysics(charPhysics);
+            }
+        }
+        characters.update();
     }
 
     @Override
     public void stop() {
-        wanderers.stop();
+        characters.stop();
         super.stop();
     }    
      
@@ -102,8 +124,7 @@ public class CharInputSystem extends AbstractGameSystem {
         @Override
         protected CharInputDriver addObject( Entity e ) {
         
-System.out.println("add char input driver for:" + e);        
-            CharInputDriver driver = new CharInputDriver(e);
+            CharInputDriver driver = new CharInputDriver(e, charPhysics);
             bullet.setControlDriver(e.getId(), driver);
  
             updateObject(driver, e);
