@@ -54,14 +54,14 @@ public class SimTime {
     public SimTime() {
     }
     
-    public void update( long time ) {
+    public void update( long realTime ) {
         if( frame == 0 ) {
-            baseTime = time;
+            baseTime = realTime;
         }
-        time -= baseTime;        
+        realTime -= baseTime;        
         frame++;
-        tpf = (time - this.time) * timeScale;
-        this.time = time;
+        tpf = (realTime - this.time) * timeScale;
+        this.time = realTime;
     }
  
     /**
@@ -73,8 +73,8 @@ public class SimTime {
      *  is not locked to frames, usually as part of providing matching accurate
      *  timesource information to something else that is trying to synch.
      */   
-    public long getUnlockedTime( long time ) {
-        return time - baseTime;
+    public long getUnlockedTime( long realTime ) {
+        return realTime - baseTime;
     }
  
     public long toSimTime( double seconds ) {
