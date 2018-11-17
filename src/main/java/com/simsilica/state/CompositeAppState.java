@@ -53,7 +53,18 @@ public class CompositeAppState extends BaseAppState {
 
     private final SafeArrayList<AppStateEntry> states = new SafeArrayList<>(AppStateEntry.class);
     private boolean childrenEnabled;
-    private boolean attached;
+    
+    /**
+     *  Since we manage attachmend/detachment possibly before
+     *  initialization, we need to keep track of the stateManager we
+     *  were given in stateAttached() in case we have to attach another
+     *  child prior to initialization (but after we're attached).
+     *  It's possible that we should actually be waiting for initialize
+     *  to add these but I feel like there was some reason I did it this 
+     *  way originally.  Past-me did not leave any clues.
+     */
+    private AppStateManager stateManager;
+    private boolean attached;  
     
     public CompositeAppState( AppState... states ) {
         for( AppState a : states ) {
@@ -90,7 +101,7 @@ public class CompositeAppState extends BaseAppState {
         }
         states.add(new AppStateEntry(state, overrideEnable));
         if( attached ) {
-            getApplication().getStateManager().attach(state);
+            stateManager.attach(state);
         }
         return state;   
     }
@@ -102,7 +113,7 @@ public class CompositeAppState extends BaseAppState {
         }
         states.remove(index);
         if( attached ) {
-            getApplication().getStateManager().detach(state);
+            stateManager.detach(state);
         }
     }
     
@@ -117,6 +128,7 @@ public class CompositeAppState extends BaseAppState {
     
     @Override 
     public void stateAttached( AppStateManager stateManager ) {
+        this.stateManager = stateManager;
         for( AppStateEntry e : states.getArray() ) {
             stateManager.attach(e.state);
         }
@@ -130,6 +142,7 @@ public class CompositeAppState extends BaseAppState {
             stateManager.detach(states.get(i).state);
         }
         this.attached = false;
+        this.stateManager = null;
     }
 
     protected void setChildrenEnabled( boolean b ) {

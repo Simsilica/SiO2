@@ -1,5 +1,5 @@
 
-Version 1.1.1 (unreleased)
+Version 1.1.1 (latest)
 --------------
 * Fixed a SimTime initialization problem where the first tpf would be
     huge.
@@ -28,6 +28,8 @@ Version 1.1.1 (unreleased)
     FOV, near, and far plane values.
 * Modified SimTime to initialize baseTime to current time on the first frame so
     that game time begins counting from the first frame.
+* Fixed an NPE in CompositeAppState.addChild() when called after the outer state is
+    attached but before it was initialized.  See PR #5.
         
 
 Version 1.1.0
