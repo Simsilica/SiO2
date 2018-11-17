@@ -46,6 +46,7 @@ package com.simsilica.sim;
 public class SimTime {
     private long frame;
     private long time;
+    private long baseTime; // so that time can be based on some 0 value
     private double tpf;
     private double invTimeScale = 1000000000.0; // nanos  
     private double timeScale = 1.0 / invTimeScale;
@@ -54,6 +55,10 @@ public class SimTime {
     }
     
     public void update( long time ) {
+        if( frame == 0 ) {
+            baseTime = time;
+        }
+        time -= baseTime;        
         frame++;
         tpf = (time - this.time) * timeScale;
         this.time = time;

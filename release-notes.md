@@ -26,6 +26,8 @@ Version 1.1.1 (unreleased)
     instead of forcing them to be created through the API.    
 * Added a CameraState to make it easier to independently set camera parameters like
     FOV, near, and far plane values.
+* Modified SimTime to initialize baseTime to current time on the first frame so
+    that game time begins counting from the first frame.
         
 
 Version 1.1.0
