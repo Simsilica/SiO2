@@ -64,6 +64,19 @@ public class SimTime {
         this.time = time;
     }
  
+    /**
+     *  Returns the SimTime version of the specified timestamp that
+     *  is compatible with what would normally be provided to update().
+     *  SimTime.getTime() will provide 'frame locked' timestamps that will
+     *  not update during a frame which is what the systems will want 99.99%
+     *  of the time.  Rarely it is desirable to get a "real" timestamp that 
+     *  is not locked to frames, usually as part of providing matching accurate
+     *  timesource information to something else that is trying to synch.
+     */   
+    public long getUnlockedTime( long time ) {
+        return time - baseTime;
+    }
+ 
     public long toSimTime( double seconds ) {
         return (long)(seconds * invTimeScale);
     }
