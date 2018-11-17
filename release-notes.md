@@ -1,5 +1,5 @@
 
-Version 1.1.1 (unreleased)
+Version 1.2.0 (latest)
 --------------
 * Fixed a SimTime initialization problem where the first tpf would be
     huge.
@@ -30,6 +30,11 @@ Version 1.1.1 (unreleased)
     that game time begins counting from the first frame.
 * Fixed an NPE in CompositeAppState.addChild() when called after the outer state is
     attached but before it was initialized.  See PR #5.
+* Set sourceCompatibility to 1.7 and turned on detailed 'unchecked' warnings
+* Suppressed 'unchecked' warnings in some methods of EntityContainer, EventBus,
+    and DecaySystem where it is known that the operations are safe or safe-ish,
+    ie: we know we did it for a reason and don't need to be reminded all the time.
+* Increased Zay-ES versions to 1.3.0
         
 
 Version 1.1.0
