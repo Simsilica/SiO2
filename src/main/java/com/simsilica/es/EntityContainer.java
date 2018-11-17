@@ -79,10 +79,12 @@ public abstract class EntityContainer<T> {
     private Map<EntityId, T> objects = new HashMap<>();
     private Class parameter;
     
+    @SuppressWarnings("unchecked")
     protected EntityContainer( EntityData ed, Class<? extends EntityComponent>... componentTypes ) {
         this(ed, null, componentTypes);
     }
  
+    @SuppressWarnings("unchecked")
     protected EntityContainer( EntityData ed, ComponentFilter filter, Class<? extends EntityComponent>... componentTypes ) {
         this.ed = ed;
         this.filter = filter;
@@ -122,6 +124,7 @@ public abstract class EntityContainer<T> {
         return ed;
     }
     
+    @SuppressWarnings("unchecked")
     protected void addComponentTypes( Class<? extends EntityComponent>... add ) {
         Class[] merged = new Class[add.length + componentTypes.length];
         System.arraycopy(componentTypes, 0, merged, 0, componentTypes.length);
@@ -137,6 +140,7 @@ public abstract class EntityContainer<T> {
         return objects.get(id);
     }
  
+    @SuppressWarnings("unchecked")
     protected T[] getArray() {
         if( array != null ) {
             return array;

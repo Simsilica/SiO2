@@ -164,6 +164,7 @@ public class EventBus {
         }
     }
     
+    @SuppressWarnings("unchecked")
     protected <E> boolean deliver( EventType<E> type, E event, ListenerList listeners ) {
     
         if( listeners.isEmpty() ) {
@@ -242,6 +243,7 @@ public class EventBus {
         all.remove(listener);
     }
     
+    @SuppressWarnings("unchecked")
     protected Method findMethod( Class c, EventType type ) throws NoSuchMethodException {
     
         // First try the 'on' + name version
@@ -303,6 +305,7 @@ public class EventBus {
      *  Reverses the generic addListenerMethods() method by removing the specified
      *  listener from any of the specified registered types.
      */   
+    @SuppressWarnings("unchecked")
     public void removeListenerMethods( Object listener, EventType... types ) {
         for( EventType type : types ) {
             ListenerList listeners = getListeners(type);

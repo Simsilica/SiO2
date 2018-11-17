@@ -117,6 +117,7 @@ public class DecaySystem extends AbstractGameSystem {
      */    
     private class DecayContainer extends EntityContainer<Entity> {
 
+        @SuppressWarnings("unchecked")
         public DecayContainer( EntityData ed ) {
             super(ed, Decay.class);
         }
