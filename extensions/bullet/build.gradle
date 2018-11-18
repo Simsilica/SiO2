@@ -23,8 +23,8 @@ dependencies {
     compile 'org.jmonkeyengine:jme3-bullet:3.2.1-stable'
     //compile "org.jmonkeyengine:jme3-jbullet:$jmeVersion"
     
-    compile "com.simsilica:zay-es:1.3.0-SNAPSHOT"
-    compile "com.simsilica:sim-math:1.2.0-SNAPSHOT"
+    compile "com.simsilica:zay-es:1.3.0"
+    compile "com.simsilica:sim-math:1.2.0"
     
     compile 'com.google.guava:guava:19.0'
     compile 'org.slf4j:slf4j-api:1.7.13'

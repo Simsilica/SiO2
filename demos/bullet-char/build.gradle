@@ -48,7 +48,7 @@ dependencies {
     compile "com.simsilica:lemur-proto:1.8.1"    
     runtime 'org.codehaus.groovy:groovy-all:2.4.5'
 
-    compile "com.simsilica:sim-math:1.2.0-SNAPSHOT"
+    compile "com.simsilica:sim-math:1.2.0"
 
     compile 'org.slf4j:slf4j-api:1.7.13'
     // Actual implementation behind slf4j

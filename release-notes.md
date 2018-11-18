@@ -1,5 +1,5 @@
 
-Version 1.2.0 (unreleased)
+Version 1.2.0 (latest)
 --------------
 * Fixed a SimTime initialization problem where the first tpf would be
     huge.
