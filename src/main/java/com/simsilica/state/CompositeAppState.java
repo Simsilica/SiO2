@@ -83,7 +83,7 @@ public class CompositeAppState extends BaseAppState {
     }
 
     private AppStateEntry entry( AppState state ) {
-        for( AppStateEntry e : states ) {
+        for( AppStateEntry e : states.getArray() ) {
             if( e.state == state ) {
                 return e;
             }
@@ -118,7 +118,7 @@ public class CompositeAppState extends BaseAppState {
     }
     
     protected <T extends AppState> T getChild( Class<T> stateType ) {
-        for( AppStateEntry e : states ) {
+        for( AppStateEntry e : states.getArray() ) {
             if( stateType.isInstance(e.state) ) {
                 return stateType.cast(e.state);
             }
