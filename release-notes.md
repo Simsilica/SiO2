@@ -2,6 +2,7 @@ Version 1.2.1 (unreleased)
 --------------
 * Upped the Zay-ES-net version to 1.3.1 to get the entity set filtering
     bug fix.
+* CompositeAppState modified to use SafeArrayList.getArray() in for loops.
 
 
 Version 1.2.0 (latest)
