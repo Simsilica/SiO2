@@ -49,7 +49,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class GameLoop {
 
-    private static final long INTERVAL_FPS_60 = 16666667L; 
+    public static final long FPS_60 = 16666667L; 
 
     private final GameSystemManager systems;
     private final Runner loop = new Runner(); 
@@ -68,8 +68,8 @@ public class GameLoop {
      */
     private SimTime safeTime = new SimTime();
     
-    public GameLoop(GameSystemManager systems) {
-        this(systems, INTERVAL_FPS_60); // 60 FPS 
+    public GameLoop( GameSystemManager systems ) {
+        this(systems, FPS_60); // 60 FPS 
     }
     
     public GameLoop( GameSystemManager systems, long updateRateNanos ) {
@@ -133,7 +133,7 @@ public class GameLoop {
     public final void setIdleSleepTime( Long millis ) {
         if( millis == null ) {
             // Configure a reasonable default
-            if( updateRate > INTERVAL_FPS_60 ) {
+            if( updateRate > FPS_60 ) {
                 // Can probably get away with more sleep
                 this.idleSleepTime = 1;
             } else {
