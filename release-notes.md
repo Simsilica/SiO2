@@ -3,6 +3,9 @@ Version 1.2.1 (unreleased)
 * Upped the Zay-ES-net version to 1.3.1 to get the entity set filtering
     bug fix.
 * CompositeAppState modified to use SafeArrayList.getArray() in for loops.
+* Modified GameLoop's default frame interval constant to be public: GameLoop.FPS_60
+* Added a GameSystemsState utility for managing a GameSystemManager in
+    single player games.    
 
 
 Version 1.2.0 (latest)
