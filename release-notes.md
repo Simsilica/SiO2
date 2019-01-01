@@ -1,4 +1,4 @@
-Version 1.2.1 (unreleased)
+Version 1.3.0 (unreleased)
 --------------
 * Upped the Zay-ES-net version to 1.3.1 to get the entity set filtering
     bug fix.
@@ -6,6 +6,7 @@ Version 1.2.1 (unreleased)
 * Modified GameLoop's default frame interval constant to be public: GameLoop.FPS_60
 * Added a GameSystemsState utility for managing a GameSystemManager in
     single player games.    
+* Added a MemoryDebugState utility that displays memory stats using the DebugHudState.
 
 
 Version 1.2.0 (latest)
