@@ -61,6 +61,13 @@ public class MemoryDebugState extends BaseAppState {
     private DebugHudState hud;
     private DebugHudState.Location location = DebugHudState.Location.Right; 
     private boolean detailedStats;
+    
+    // Making direct memory usage display optional and off by default.
+    // I guess some time on JDK 1.7+, the heap memory issues must have been
+    // fixed because now this seems to be managed differently and will 
+    // always show as 100%.  -XX:MaxDirectMemorySize no longer seems to have
+    // any affect on the max size reported by the JVM.
+    private boolean includeDirectMem;
 
     private float updateInterval;
     private float nextUpdate;
@@ -78,7 +85,7 @@ public class MemoryDebugState extends BaseAppState {
      *  right debug panel and update them once a second.
      */
     public MemoryDebugState() {
-        this(DebugHudState.Location.Right, 1, false);        
+        this(DebugHudState.Location.Right, 1, false, false);        
     }
 
     /**
@@ -86,12 +93,15 @@ public class MemoryDebugState extends BaseAppState {
      *  location and update them as often as the specified updateInterval in seconds.
      *  If detailedStats is true then the raw memory values (in megabytes) are displayed
      *  with the percentage.  If detailedStats is false then only the percentage is 
-     *  displayed.
+     *  displayed.  If includeDirectMem is true then a direct memory usage line is 
+     *  displayed though this seems to be pretty unncessary on modern JVMs.
      */    
-    public MemoryDebugState( DebugHudState.Location location, float updateInterval, boolean detailedStats ) {
+    public MemoryDebugState( DebugHudState.Location location, float updateInterval, 
+                             boolean detailedStats, boolean includeDirectMem ) {
         this.location = location;
         this.updateInterval = updateInterval;
         this.detailedStats = detailedStats;
+        this.includeDirectMem = includeDirectMem;
     }
     
     public void setDetailedStats( boolean detailedStats ) {
@@ -124,7 +134,9 @@ public class MemoryDebugState extends BaseAppState {
     @Override
     protected void onEnable() {
         this.heap = hud.createDebugValue(HEAP, location);
-        this.direct = hud.createDebugValue(DIRECT, location);    
+        if( includeDirectMem ) {
+            this.direct = hud.createDebugValue(DIRECT, location);
+        }    
     }
  
     protected void updateMemoryStats() {
@@ -149,20 +161,23 @@ public class MemoryDebugState extends BaseAppState {
             }
         }
         
-        
-        long directTotal = MemoryUtils.getDirectMemoryTotalCapacity();
-        long directUsage = MemoryUtils.getDirectMemoryUsage(); 
-        if( lastDirectUsage != directUsage || lastDirectTotal != directTotal ) {
-            lastDirectUsage = directUsage;
-            lastDirectTotal = directTotal;
-            float percent = 100f * directUsage / directTotal;
- 
-            String p = String.format("%.2f%%", percent);
-            if( detailedStats ) {            
-                String mb = String.format("%.2f/%.2f mb", directUsage * BYTE_TO_MB, directTotal * BYTE_TO_MB);  
-                direct.setObject(p + " (" + mb + ")");
-            } else {
-                direct.setObject(p);
+        if( includeDirectMem ) {
+            long directTotal = MemoryUtils.getDirectMemoryTotalCapacity();
+            long directUsage = MemoryUtils.getDirectMemoryUsage(); 
+            if( lastDirectUsage != directUsage || lastDirectTotal != directTotal ) {
+                lastDirectUsage = directUsage;
+                lastDirectTotal = directTotal;
+                float percent = 100f * directUsage / directTotal;
+    
+                String p = String.format("%.2f%%", percent);
+                if( detailedStats ) {            
+                    String mb = String.format("%.2f/%.2f mb", directUsage * BYTE_TO_MB, directTotal * BYTE_TO_MB);  
+                    direct.setObject(p + " (" + mb + ")");
+                    // The count seems to be unhelpful
+                    //direct.setObject(p + " (" + mb + ") #" + MemoryUtils.getDirectMemoryCount());
+                } else {
+                    direct.setObject(p);
+                }
             }
         }
         
@@ -180,6 +195,8 @@ public class MemoryDebugState extends BaseAppState {
     @Override
     protected void onDisable() {
         hud.removeDebugValue(HEAP);
-        hud.removeDebugValue(DIRECT);
+        if( includeDirectMem ) {
+            hud.removeDebugValue(DIRECT);
+        }
     }
 }
