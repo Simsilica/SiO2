@@ -9,12 +9,20 @@ version='1.0.0-SNAPSHOT'
 //ext.jmeVersion = "3.2.1-stable" 
 ext.jmeVersion = "3.3.0-SNAPSHOT"
 
+def useNativeBullet = false
+
 repositories {
     flatDir {
         dirs rootProject.file('lib')
     }
     mavenLocal()
-    jcenter()
+    
+    if( JavaVersion.current() == JavaVersion.VERSION_1_7 ) {
+        // Fallback for JDK 7 that can no longer connect to jcenter with https
+        maven { url "http://jcenter.bintray.com" }
+    } else {
+        jcenter()
+    }
 }
 
 // In this section you declare the dependencies for your production and test code
@@ -23,9 +31,6 @@ dependencies {
     compile(project(":extensions:sio2-bullet")) {
         exclude group: 'org.jmonkeyengine', module: 'jme3-bullet'
     }
-    
-    //compile 'org.jmonkeyengine:jme3-bullet:3.2.1-stable'
-    //compile "org.jmonkeyengine:jme3-jbullet:$jmeVersion"    
     
     compile 'com.google.guava:guava:19.0'
     
@@ -36,10 +41,17 @@ dependencies {
     // For postproc
     compile "org.jmonkeyengine:jme3-effects:$jmeVersion"
 
-    compile "org.jmonkeyengine:jme3-jbullet:$jmeVersion"
-    compile 'jbullet:jbullet:0.0'
-    //compile "org.jmonkeyengine:jme3-bullet:$jmeVersion"
-    //compile 'org.jmonkeyengine:jme3-bullet-native:3.2.1-stable'
+    if( useNativeBullet ) {
+        compile "org.jmonkeyengine:jme3-bullet:$jmeVersion"
+        compile "org.jmonkeyengine:jme3-bullet-native:$jmeVersion"
+    } else {
+        compile("org.jmonkeyengine:jme3-jbullet:$jmeVersion") {
+            exclude group: 'jbullet', module:'jbullet' 
+            exclude group: 'stack-alloc', module:'stack-alloc' 
+        }
+        compile files('lib/jbullet.jar')
+        runtime files('lib/stack-alloc.jar')
+    }
     
     compile "com.simsilica:lemur:1.9.1"
     compile "com.simsilica:lemur-proto:1.8.1"    

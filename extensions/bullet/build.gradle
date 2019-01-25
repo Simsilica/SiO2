@@ -13,7 +13,13 @@ ext {
 
 repositories {
     mavenLocal()
-    jcenter()
+
+    if( JavaVersion.current() == JavaVersion.VERSION_1_7 ) {
+        // Fallback for JDK 7 that can no longer connect to jcenter with https
+        maven { url "http://jcenter.bintray.com" }
+    } else {
+        jcenter()
+    }
 }
 
 // In this section you declare the dependencies for your production and test code
