@@ -49,6 +49,7 @@ import com.jme3.scene.*;
 import com.jme3.util.SafeArrayList;
 
 import com.simsilica.es.*;
+import com.simsilica.mathd.Vec3d;
 import com.simsilica.mathd.filter.*;
 
 
@@ -72,6 +73,7 @@ public class MobAnimationState extends BaseAppState {
     
     private MobilityContainer mobStates;
     private ActionContainer mobActions;
+    private GroundContainer mobGrounds;
 
     public MobAnimationState() {        
     }
@@ -84,6 +86,7 @@ public class MobAnimationState extends BaseAppState {
         
         this.mobStates = new MobilityContainer(ed);
         this.mobActions = new ActionContainer(ed);
+        this.mobGrounds = new GroundContainer(ed);
     }
     
     @Override
@@ -94,12 +97,14 @@ public class MobAnimationState extends BaseAppState {
     protected void onEnable() {
         mobStates.start();
         mobActions.start();
+        mobGrounds.start();
     }
     
     @Override 
     public void update( float tpf ) {
         mobStates.update();
         mobActions.update();
+        mobGrounds.update();
         
         for( MobAnimation mob : mobs.getArray() ) {
             mob.update(tpf);
@@ -110,6 +115,7 @@ public class MobAnimationState extends BaseAppState {
     protected void onDisable() {
         mobActions.stop();
         mobStates.stop();
+        mobGrounds.stop();
     }
  
     protected MobAnimation getMobAnimation( EntityId id ) {
@@ -146,6 +152,17 @@ public class MobAnimationState extends BaseAppState {
     
     protected void removeAction( EntityId parent, CharacterAction action ) {
         getMobAnimation(parent).removeAction(action.getCharacterActionName(ed));
+    }
+ 
+    protected void updateGround( EntityId mob, CharacterGround ground ) {
+        getMobAnimation(mob).setGround(ground);
+    }
+
+    protected void removeGround( EntityId mob ) {
+        MobAnimation mobAnim = getMobAnimation(mob);
+        if( mobAnim != null ) { 
+            mobAnim.setGround(null);
+        }
     }
     
     protected Spatial findAnimRoot( Spatial s ) {
@@ -184,10 +201,23 @@ public class MobAnimationState extends BaseAppState {
         private Vector3f velocity = new Vector3f();
         
         private CharacterGround ground;
-         
-        
+        private Vec3d groundVelocity = new Vec3d();
+        private boolean onGround = false;
+                 
         public MobAnimation( EntityId id ) {
             this.id = id;
+        }
+
+        public void setGround( CharacterGround ground ) {
+//System.out.println("setGround(" + ground + ")");        
+            this.ground = ground;
+            if( ground != null && ground.getVelocity() != null ) {
+                groundVelocity.set(ground.getVelocity());
+                onGround = true;
+            } else {
+                groundVelocity.set(0,0,0);
+                onGround = false;
+            }
         }
 
         protected Spatial getAnimRoot() {
@@ -204,6 +234,9 @@ System.out.println("model:" + model);
                 if( animRoot == null ) {
                     // Have to find it the hard way
                     animRoot = findAnimRoot(model);
+                    if( animRoot.getControl(AnimComposer.class) != null ) {
+                        log.info("Anim clip names:" + animRoot.getControl(AnimComposer.class).getAnimClipsNames());
+                    }                    
                 }
 System.out.println("animRoot:" + animRoot);
                 
@@ -297,12 +330,29 @@ System.out.println("animRoot:" + animRoot);
             
             // We don't account for up/down right now
             velocity.y = 0;
+  
+            // Extrapolate the real velocity using tpf
+            if( tpf > 0 ) {
+                velocity.x /= tpf;
+                velocity.y /= tpf;
+                velocity.z /= tpf;
+            } 
+            
+            // Adjust for the ground velocity.  Our "foot" velocity is whatever our
+            // body velocity is minus the velocity of where we are standing.
+            velocity.x = (float)(velocity.x - groundVelocity.x);            
+            velocity.z = (float)(velocity.z - groundVelocity.z);            
             
             // Track the current values for next time
             lastLocation.set(model.getWorldTranslation());
             lastRotation.set(model.getWorldRotation());
 
             float rawSpeed = velocity.length();
+//System.out.println("Foot velocity:" + velocity + "  speed:" + rawSpeed);           
+            
+            // If the raw speed is less than a certain threshold then
+            // just clamp the velocity to 0.
+            //if( rawSpeed < 0.
             
             // Because we aren't interpolating over known good physics frames
             // like we would in a network app, we have the possibility of seeing
@@ -322,14 +372,24 @@ System.out.println("animRoot:" + animRoot);
             // frame blip.  We have filtering code to remove these blips but it's
             // bypassed if we 'early out' for rawSpeed = 0.
             //if( rawSpeed > 0.001 ) {
-                float speed = (tpf > 0 && rawSpeed > 0) ? velocity.length() / tpf : 0;
+                //float speed = (tpf > 0 && rawSpeed > 0) ? rawSpeed / tpf : 0;
                 
                 // Just a simple heuristic for now
                 //if( speed > 0.01 ) {            
                     float forward = lastRotation.mult(Vector3f.UNIT_Z).dot(velocity);
-                    forward = tpf > 0 ? forward / tpf : 0;
                     float left = lastRotation.mult(Vector3f.UNIT_X).dot(velocity);
-                    left = tpf > 0 ? left / tpf : 0;
+                    
+//System.out.println("Raw forward:" + forward + "  rawLeft:" + left);                    
+                    //forward = tpf > 0 ? forward / tpf : 0;
+                    //left = tpf > 0 ? left / tpf : 0;
+//System.out.println("rawSpeed:" + rawSpeed + " Adjusted tpf:" + tpf + "  forward:" + forward + "  left:" + left);                    
+
+                    // Clamp the speed by some threshold to avoid math errors creeping
+                    // in as slow animations
+                    //if( Math.abs(forward) <  
+                    //    rawSpeed = 0;
+                    //}
+            
                     
                     double normalWalkSpeed = primary.getBaseSpeed();
                     double animSpeed = forward / normalWalkSpeed;
@@ -338,11 +398,19 @@ System.out.println("animRoot:" + animRoot);
                     // a moving average
                     lowPass.addValue(animSpeed);
                     animSpeed = lowPass.getFilteredValue();
-//System.out.println("forward:" + forward + "  left:" + left + "  animSpeed:" + animSpeed);
-                     
-                    if( Math.abs(animSpeed) > 0.01 ) {
-                        setBaseAnimation("Walk", animSpeed);
+//System.out.println("rawSpeed:" + rawSpeed + "  forward:" + forward + "  left:" + left + "  animSpeed:" + animSpeed);
+//System.out.println("animSpeed:" + animSpeed);
+
+                    if( !onGround ) {
+                        setBaseAnimation("Jumping", 1);
                         return;
+                    } else {
+                        // Clamp the animation speed at some minimum threshold that
+                        // won't look silly.            
+                        if( Math.abs(animSpeed) > 0.2 ) {
+                            setBaseAnimation("Walk", animSpeed);
+                            return;
+                        }
                     }
                 //} 
             //} else {
@@ -417,6 +485,36 @@ System.out.println("animRoot:" + animRoot);
             removeAction(object.parentId, object.value);
         }
     }
+    
+    @SuppressWarnings("unchecked")
+    private class GroundContainer extends EntityContainer<CharacterGround> {
+        public GroundContainer( EntityData ed ) {
+            super(ed, CharacterGround.class);
+        }
+ 
+        @Override
+        protected CharacterGround addObject( Entity e ) {
+            CharacterGround ground = e.get(CharacterGround.class);
+            updateObject(ground, e);
+            return ground;
+        }
+
+        @Override
+        protected void updateObject( CharacterGround object, Entity e ) {
+            // Remember, we have to look up the component again even if we
+            // are using it as our object... else we only ever see the original
+            // value when we were created.        
+            CharacterGround ground = e.get(CharacterGround.class);
+//System.out.println("updateGroud:" + e.getId() + " -> " + ground);
+            updateGround(e.getId(), ground);
+        }
+        
+        @Override
+        protected void removeObject( CharacterGround object, Entity e ) {
+            removeGround(e.getId());
+        }
+    }
+    
 }
 
 

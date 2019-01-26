@@ -56,7 +56,6 @@ public class CharacterGround implements EntityComponent {
     private Vec3d velocity;
     
     public CharacterGround() {
-        this(null, null); 
     }
     
     public CharacterGround( EntityId groundId, Vec3d velocity ) {   
@@ -74,7 +73,7 @@ public class CharacterGround implements EntityComponent {
 
     @Override
     public String toString() {
-        return "CharacterGround[" + groundId + "]";
+        return "CharacterGround[groudId=" + groundId + ", groundVelocity=" + velocity + "]";
     }      
 }
 

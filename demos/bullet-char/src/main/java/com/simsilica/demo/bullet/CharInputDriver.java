@@ -164,6 +164,10 @@ canJump = true;
  
             groundVelocity.addLocal(vTemp);
             groundContactCount++;
+            
+//System.out.println("Standing on:" + otherBody);            
+            // Whatever the most recent ground entity is
+            groundEntity = otherBody.getId();
         }        
     }
  
@@ -183,7 +187,7 @@ canJump = true;
     
     @Override
     public void update( SimTime time, EntityRigidBody body ) {
-    
+//System.out.println("-------------------update");    
         calculateCollisionData();
     
         //body.getPhysicsRotation(qTemp);
@@ -286,9 +290,8 @@ System.out.println("---------------Jump done, faling.");
         if( lastGroundEntity != groundEntity || !lastGroundVelocity.equals(groundVelocity)) {
             lastGroundEntity = groundEntity;
             lastGroundVelocity.set(groundVelocity);
-            if( lastGroundEntity == null ) {
-                entity.set(new CharacterGround());
-            } else if( groundVelocity.lengthSquared() == 0 ) {
+//System.out.println("ground:" + lastGroundEntity + "  groundVelocity:" + lastGroundVelocity);            
+            if( groundContactCount == 0 ) { //groundVelocity.lengthSquared() == 0 ) {
                 entity.set(new CharacterGround(lastGroundEntity, null));
             } else {
                 entity.set(new CharacterGround(lastGroundEntity, new Vec3d(lastGroundVelocity)));
