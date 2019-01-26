@@ -132,6 +132,7 @@ public class Main extends SimpleApplication {
         super(new StatsAppState(), new DebugKeysAppState(), new BasicProfilerState(false),
               new GameSystemsState(),
               new ModelViewState(),
+              new MobAnimationState(),
               //new DebugViewState(),
               //new DebugContactState(),
               //new FlyCamAppState(),
@@ -355,6 +356,8 @@ public class Main extends SimpleApplication {
                             new Ghost(wanderer, Ghost.COLLIDE_BODY));
         }*/
         
+        
+        // Create the player
         player = ed.createEntity();
         ed.setComponents(player,
                          ShapeInfo.create("monkey", ed),
@@ -367,6 +370,12 @@ public class Main extends SimpleApplication {
                         ShapeInfo.create("monkeyPerception", ed),
                         new SpawnPosition(0, 0.05f, 0.4f),
                         new Ghost(player, Ghost.COLLIDE_BODY));
+
+        EntityId action = ed.createEntity();
+        ed.setComponents(action,
+                         new Parent(player),
+                         Mobility.create("Walk", 0.65, ed)); // speed found by trial and error
+                                
                         
         stateManager.attach(new LockedThirdPersonState(player));
         

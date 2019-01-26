@@ -68,8 +68,11 @@ public class CharInputDriver implements ControlDriver {
     private float walkSpeed = 3;
 
     private CharInput input;
-    
+ 
+    private EntityId groundEntity = null;   
+    private EntityId lastGroundEntity = null;
     private Vector3f groundVelocity = new Vector3f();
+    private Vector3f lastGroundVelocity = new Vector3f();
     private int groundContactCount = 0;
     private boolean canJump = false;
     private boolean isJumping = false;
@@ -87,6 +90,9 @@ public class CharInputDriver implements ControlDriver {
     public CharInputDriver( Entity entity, CharPhysics charPhysics ) {
         this.entity = entity;
         setCharPhysics(charPhysics);
+        
+        // Set a null ground so that it has the component.
+        entity.set(new CharacterGround(null, null));
     }
 
     public void setInput( CharInput input ) {
@@ -169,6 +175,7 @@ canJump = true;
     }
     
     protected void invalidateCollisionData() {
+        groundEntity = null;
         groundContactCount = 0;
         groundVelocity.set(0, 0, 0);
         canJump = false;
@@ -274,9 +281,22 @@ System.out.println("---------------KILL JUMP!");
             isJumping = false;
 System.out.println("---------------Jump done, faling.");            
         }
+ 
+        // Setup the ground reference
+        if( lastGroundEntity != groundEntity || !lastGroundVelocity.equals(groundVelocity)) {
+            lastGroundEntity = groundEntity;
+            lastGroundVelocity.set(groundVelocity);
+            if( lastGroundEntity == null ) {
+                entity.set(new CharacterGround());
+            } else if( groundVelocity.lengthSquared() == 0 ) {
+                entity.set(new CharacterGround(lastGroundEntity, null));
+            } else {
+                entity.set(new CharacterGround(lastGroundEntity, new Vec3d(lastGroundVelocity)));
+            }
+        }
            
         // Get ready for the next set of collision events       
-        invalidateCollisionData();        
+        invalidateCollisionData();                
     }
     
     @Override

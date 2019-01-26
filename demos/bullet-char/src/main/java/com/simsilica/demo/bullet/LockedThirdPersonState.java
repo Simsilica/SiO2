@@ -77,7 +77,7 @@ public class LockedThirdPersonState extends BaseAppState
 
     private double speed = 1;
     
-    private double pitch;
+    private double pitch = -0.2;
     private double maxPitch = FastMath.HALF_PI;
     private double minPitch = -FastMath.HALF_PI;
 

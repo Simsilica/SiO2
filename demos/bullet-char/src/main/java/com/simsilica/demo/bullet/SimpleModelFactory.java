@@ -45,6 +45,7 @@ import com.jme3.math.*;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.*;
 import com.jme3.scene.shape.*;
+import com.jme3.texture.*;
 
 import com.simsilica.es.*;
 import com.simsilica.lemur.*;
@@ -112,8 +113,13 @@ public class SimpleModelFactory implements ModelFactory {
             return geom;
         } else if( "floor".equals(name) ) {
             Box mesh = new Box(20, 0.25f, 20);
+            mesh.scaleTextureCoordinates(new Vector2f(4, 4));
+            Texture texture = globals.loadTexture("Textures/grid.png", true, true);
             Geometry geom = new Geometry(name, mesh);
-            geom.setMaterial(globals.createMaterial(ColorRGBA.Gray, true).getMaterial());
+            //geom.setMaterial(globals.createMaterial(ColorRGBA.Gray, true).getMaterial());
+            geom.setMaterial(globals.createMaterial(texture, true).getMaterial());
+            geom.getMaterial().setBoolean("UseMaterialColors", true);
+            geom.getMaterial().setColor("Diffuse", ColorRGBA.Gray);
             geom.getMaterial().setColor("Ambient", ColorRGBA.Gray);
             geom.setShadowMode(RenderQueue.ShadowMode.Receive);
             return geom;
