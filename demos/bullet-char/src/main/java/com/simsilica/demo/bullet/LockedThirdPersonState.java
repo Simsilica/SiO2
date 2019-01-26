@@ -46,6 +46,7 @@ import com.jme3.scene.Spatial;
 
 import com.simsilica.es.*;
 import com.simsilica.mathd.*;
+import com.simsilica.mathd.filter.*;
 
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.input.*;
@@ -90,6 +91,12 @@ public class LockedThirdPersonState extends BaseAppState
     private double forward;
     private double side;
     
+    // Filter to keep the camera from jittering up and down with the object since it is
+    // likely to jitter slightly because of physics.
+    private Filterd yLowPass = new SimpleMovingMean(10); // 1/6th second of data
+    private boolean useFilter = true;
+    private float lastY = 0;            
+        
     public LockedThirdPersonState( EntityId playerId ) {
         this.playerId = playerId;        
     }
@@ -141,6 +148,34 @@ public class LockedThirdPersonState extends BaseAppState
         inputMapper.activateGroup(PlayerMovementFunctions.G_MOVEMENT);        
     }
     
+    protected float dejitterY( float y ) {
+//System.out.println("y:" + loc.y);
+ 
+        // This slows the penetration jitter down but doesn't get rid of
+        // it... it does give a kind of cool delay effect to the jumps.
+        // May be undersirable to some... making it optional.  Combined
+        // with the real fix below it creates a nice delay effect and
+        // (to me) makes the jumps feel more powerful and responsive.  
+        if( useFilter ) {           
+            yLowPass.addValue(y);
+            y = (float)yLowPass.getFilteredValue();
+        }
+
+        // Could be that we just want to quantize
+        // the y position onto some grid instead... that would filter out any
+        // changes smaller than the 'grid' size, ie: 0.1 or 0.01 or something.
+        // This works when standing still but makes for a jittery jump            
+        //loc.y = Math.round(loc.y * 10) * 0.1f;
+ 
+        // Only change the camera's base y if the difference is big enough
+        // to not be from jitter.
+        // This works pretty well.           
+        if( Math.abs(y - lastY) > 0.01 ) {
+            lastY = y;
+        }
+        return lastY; 
+    }
+    
     @Override
     public void update( float tpf ) {
  
@@ -162,6 +197,8 @@ public class LockedThirdPersonState extends BaseAppState
         boolean changed = player.applyChanges();
         if( playerAvatar != null ) {
             Vector3f loc = playerAvatar.getWorldTranslation().clone();
+            loc.y = dejitterY(loc.y);
+            
             loc.subtractLocal(camRot.mult(Vector3f.UNIT_Z.mult(cameraDistance)));
             camera.setLocation(loc);            
         } else if( changed ) {
