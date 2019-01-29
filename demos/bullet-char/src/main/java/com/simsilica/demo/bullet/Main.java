@@ -97,6 +97,11 @@ public class Main extends SimpleApplication {
 
     public static final String TITLE = "SiO2 Bullet Extension Demo";
 
+    public static final FunctionId PHYSICS_DEBUG = new FunctionId("Toggle Physics Debug");
+    public static final FunctionId CONTACT_DEBUG = new FunctionId("Toggle Contact Debug");
+    public static final FunctionId SHOOT_BALL = new FunctionId("Shoot Ball");        
+    public static final FunctionId SHOOT_CUBE = new FunctionId("Shoot Cube");        
+
     static Logger log = LoggerFactory.getLogger(Main.class);
 
     private DirectionalLight sun;
@@ -130,12 +135,13 @@ public class Main extends SimpleApplication {
 
     public Main() {
         super(new StatsAppState(), new DebugKeysAppState(), new BasicProfilerState(false),
+              new HelpState(),
               new GameSystemsState(),
               new ModelViewState(),
               new MobAnimationState(),
               //new DebugViewState(),
               //new DebugContactState(),
-              //new FlyCamAppState(),
+              //new FlyCamAppState(),             
               new ScreenshotAppState("", System.currentTimeMillis()));
     }
 
@@ -433,6 +439,7 @@ public class Main extends SimpleApplication {
         inputManager.setCursorVisible(false);                
 
         PlayerMovementFunctions.initializeDefaultMappings(GuiGlobals.getInstance().getInputMapper());
+        HelpState.initializeDefaultMappings(GuiGlobals.getInstance().getInputMapper());
 
         setupGameSystems();
 
@@ -449,26 +456,22 @@ public class Main extends SimpleApplication {
         setupCamera();
         setupPostProcessing();
         
-        FunctionId bulletDebug = new FunctionId("Toggle Physics Debug");
-        GuiGlobals.getInstance().getInputMapper().map(bulletDebug, KeyInput.KEY_F7);
-        GuiGlobals.getInstance().getInputMapper().addDelegate(bulletDebug, 
+        GuiGlobals.getInstance().getInputMapper().map(PHYSICS_DEBUG, KeyInput.KEY_F7);
+        GuiGlobals.getInstance().getInputMapper().addDelegate(PHYSICS_DEBUG, 
                                                               stateManager.getState(PhysicsDebugState.class), 
                                                               "toggleEnabled");
                                                               
-        FunctionId contactDebug = new FunctionId("Toggle Contact Debug");
-        GuiGlobals.getInstance().getInputMapper().map(contactDebug, KeyInput.KEY_F7, KeyInput.KEY_LSHIFT);
-        GuiGlobals.getInstance().getInputMapper().map(contactDebug, KeyInput.KEY_F7, KeyInput.KEY_RSHIFT);
-        GuiGlobals.getInstance().getInputMapper().addDelegate(contactDebug, 
+        GuiGlobals.getInstance().getInputMapper().map(CONTACT_DEBUG, KeyInput.KEY_F7, KeyInput.KEY_LSHIFT);
+        GuiGlobals.getInstance().getInputMapper().map(CONTACT_DEBUG, KeyInput.KEY_F7, KeyInput.KEY_RSHIFT);
+        GuiGlobals.getInstance().getInputMapper().addDelegate(CONTACT_DEBUG, 
                                                               stateManager.getState(ContactDebugState.class), 
                                                               "toggleEnabled");
         
-        FunctionId shootBall = new FunctionId("Shoot Ball");        
-        GuiGlobals.getInstance().getInputMapper().map(shootBall, com.simsilica.lemur.input.Button.MOUSE_BUTTON1);
-        GuiGlobals.getInstance().getInputMapper().addDelegate(shootBall, this, "shootBall");
+        GuiGlobals.getInstance().getInputMapper().map(SHOOT_BALL, com.simsilica.lemur.input.Button.MOUSE_BUTTON1);
+        GuiGlobals.getInstance().getInputMapper().addDelegate(SHOOT_BALL, this, "shootBall");
         
-        FunctionId shootCube = new FunctionId("Shoot Cube");        
-        GuiGlobals.getInstance().getInputMapper().map(shootCube, com.simsilica.lemur.input.Button.MOUSE_BUTTON2);
-        GuiGlobals.getInstance().getInputMapper().addDelegate(shootCube, this, "shootCube");
+        GuiGlobals.getInstance().getInputMapper().map(SHOOT_CUBE, com.simsilica.lemur.input.Button.MOUSE_BUTTON2);
+        GuiGlobals.getInstance().getInputMapper().addDelegate(SHOOT_CUBE, this, "shootCube");
     }
  
     public void simpleUpdate( float tpf ) {

@@ -59,7 +59,6 @@ public class PlayerMovementFunctions {
 
     public static final FunctionId F_MOVE = new FunctionId(G_MOVEMENT, "Move");
     public static final FunctionId F_STRAFE = new FunctionId(G_MOVEMENT, "Strafe");
-    public static final FunctionId F_ELEVATE = new FunctionId(G_MOVEMENT, "Elevate");
     
     public static final FunctionId F_RUN = new FunctionId(G_MOVEMENT, "Run");
  
@@ -111,15 +110,6 @@ public class PlayerMovementFunctions {
             
             inputMapper.map(F_STRAFE, Axis.JOYSTICK_HAT_X);
         }
-
-        if( !inputMapper.hasMappings(F_ELEVATE) ) {
-            // Elevation only has key mappings but we still treat it like
-            // one "axis".
-            inputMapper.map(F_ELEVATE, KeyInput.KEY_Q);
-            inputMapper.map(F_ELEVATE, InputState.Negative, KeyInput.KEY_Z);
-            
-            inputMapper.map(F_ELEVATE, Axis.JOYSTICK_HAT_Y);
-        } 
 
         if( !inputMapper.hasMappings(F_X_ROTATE) ) {
             // For the mouse and joystick mappings, we remember the mapping object

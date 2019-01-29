@@ -115,7 +115,6 @@ public class LockedThirdPersonState extends BaseAppState
                                       PlayerMovementFunctions.F_Y_ROTATE,
                                       PlayerMovementFunctions.F_X_ROTATE,
                                       PlayerMovementFunctions.F_MOVE,
-                                      PlayerMovementFunctions.F_ELEVATE,
                                       PlayerMovementFunctions.F_STRAFE);
 
         // Only run mode is treated as a 'state' or a trinary value.
@@ -133,7 +132,6 @@ public class LockedThirdPersonState extends BaseAppState
                                          PlayerMovementFunctions.F_Y_ROTATE,
                                          PlayerMovementFunctions.F_X_ROTATE,
                                          PlayerMovementFunctions.F_MOVE,
-                                         PlayerMovementFunctions.F_ELEVATE,
                                          PlayerMovementFunctions.F_STRAFE);
         inputMapper.removeStateListener(this,
                                         PlayerMovementFunctions.F_RUN,
