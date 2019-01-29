@@ -141,7 +141,8 @@ public class Main extends SimpleApplication {
               new MobAnimationState(),
               //new DebugViewState(),
               //new DebugContactState(),
-              //new FlyCamAppState(),             
+              //new FlyCamAppState(),
+              new SettingsState(),             
               new ScreenshotAppState("", System.currentTimeMillis()));
     }
 
@@ -187,7 +188,7 @@ public class Main extends SimpleApplication {
         systems.register(BulletSystem.class, bullet);
  
         systems.addSystem(new WanderSystem());
-        systems.addSystem(new CharInputSystem());
+        systems.register(CharInputSystem.class, new CharInputSystem());
         systems.addSystem(new PlatformPathSystem());
  
         // Add a state we can use to visualize debugging information
@@ -440,6 +441,7 @@ public class Main extends SimpleApplication {
 
         PlayerMovementFunctions.initializeDefaultMappings(GuiGlobals.getInstance().getInputMapper());
         HelpState.initializeDefaultMappings(GuiGlobals.getInstance().getInputMapper());
+        SettingsState.initializeDefaultMappings(GuiGlobals.getInstance().getInputMapper());
 
         setupGameSystems();
 
@@ -467,11 +469,11 @@ public class Main extends SimpleApplication {
                                                               stateManager.getState(ContactDebugState.class), 
                                                               "toggleEnabled");
         
-        GuiGlobals.getInstance().getInputMapper().map(SHOOT_BALL, com.simsilica.lemur.input.Button.MOUSE_BUTTON1);
-        GuiGlobals.getInstance().getInputMapper().addDelegate(SHOOT_BALL, this, "shootBall");
+        //GuiGlobals.getInstance().getInputMapper().map(SHOOT_BALL, com.simsilica.lemur.input.Button.MOUSE_BUTTON1);
+        //GuiGlobals.getInstance().getInputMapper().addDelegate(SHOOT_BALL, this, "shootBall");
         
-        GuiGlobals.getInstance().getInputMapper().map(SHOOT_CUBE, com.simsilica.lemur.input.Button.MOUSE_BUTTON2);
-        GuiGlobals.getInstance().getInputMapper().addDelegate(SHOOT_CUBE, this, "shootCube");
+        //GuiGlobals.getInstance().getInputMapper().map(SHOOT_CUBE, com.simsilica.lemur.input.Button.MOUSE_BUTTON2);
+        //GuiGlobals.getInstance().getInputMapper().addDelegate(SHOOT_CUBE, this, "shootCube");
     }
  
     public void simpleUpdate( float tpf ) {

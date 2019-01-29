@@ -54,7 +54,8 @@ dependencies {
     }
     
     compile "com.simsilica:lemur:1.11.0"
-    compile "com.simsilica:lemur-proto:1.8.1"    
+    compile "com.simsilica:lemur-proto:1.10.0"    
+    compile "com.simsilica:lemur-props:1.0.1"    
     runtime 'org.codehaus.groovy:groovy-all:2.4.5'
 
     compile "com.simsilica:sim-math:1.2.0"

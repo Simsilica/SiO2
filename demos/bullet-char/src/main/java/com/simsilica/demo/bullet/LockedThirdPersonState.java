@@ -96,9 +96,38 @@ public class LockedThirdPersonState extends BaseAppState
     private Filterd yLowPass = new SimpleMovingMean(10); // 1/6th second of data
     private boolean useFilter = true;
     private float lastY = 0;            
+    
+    private boolean invertY = true;
         
     public LockedThirdPersonState( EntityId playerId ) {
         this.playerId = playerId;        
+    }
+ 
+    public void setInvertY( boolean invert ) {
+        if( invertY == invert ) {
+            return;
+        }
+        this.invertY = invert;
+        if( invert ) {
+            // Invert is the default way we have the inputs setup.
+            PlayerMovementFunctions.MOUSE_Y_ROTATE.setScale(1);
+            PlayerMovementFunctions.JOY_Y_ROTATE.setScale(1);
+        } else {
+            PlayerMovementFunctions.MOUSE_Y_ROTATE.setScale(-1);
+            PlayerMovementFunctions.JOY_Y_ROTATE.setScale(-1);
+        }
+    }
+    
+    public boolean getInvertY() {
+        return invertY; 
+    }
+
+    public void setSpringY( boolean spring ) {
+        this.useFilter = spring;
+    }
+    
+    public boolean getSpringY() {
+        return useFilter;
     }
     
     @Override
