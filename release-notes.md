@@ -1,4 +1,4 @@
-Version 1.3.0 (unreleased)
+Version 1.3.0 (latest)
 --------------
 * Upped the Zay-ES-net version to 1.3.1 to get the entity set filtering
     bug fix.
@@ -9,7 +9,7 @@ Version 1.3.0 (unreleased)
 * Added a MemoryDebugState utility that displays memory stats using the DebugHudState.
 
 
-Version 1.2.0 (latest)
+Version 1.2.0 
 --------------
 * Fixed a SimTime initialization problem where the first tpf would be
     huge.
