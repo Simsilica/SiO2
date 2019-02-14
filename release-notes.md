@@ -1,3 +1,7 @@
+Version 1.3.1 (unreleased)
+--------------
+
+
 Version 1.3.0 (latest)
 --------------
 * Upped the Zay-ES-net version to 1.4.0 to get the entity set filtering
@@ -5,12 +9,12 @@ Version 1.3.0 (latest)
 * CompositeAppState modified to use SafeArrayList.getArray() in for loops.
 * Modified GameLoop's default frame interval constant to be public: GameLoop.FPS_60
 * Added a GameSystemsState utility for managing a GameSystemManager in
-    single player games.    
+    single player games.
 * Added a MemoryDebugState utility that displays memory stats using the DebugHudState.
 * Upped Lemur and Zay-ES/Zay-ES-Net dependencies to latest versions (1.12.0 and 1.3.1/1.4.0 respectively.)
 
 
-Version 1.2.0 
+Version 1.2.0
 --------------
 * Fixed a SimTime initialization problem where the first tpf would be
     huge.
@@ -26,7 +30,7 @@ Version 1.2.0
 * Added a standard sim.common.DecaySystem for automatically destroying entities
     whose Decay time has expired.
 * Added GameSystemManager.get(class, failOnMiss) that can optionally throw an
-    exception if the system does not exist.    
+    exception if the system does not exist.
 * Added AbstractGameSystem.getSystem(class, failOnMiss) that can optionally
     throw an exception if the system does not exist.
 * Added a MessageState that can be used to display fading messages popping up from
@@ -34,7 +38,7 @@ Version 1.2.0
 * Added a basic CommandConsoleState that can be used to allow command entry (can
     automatically feed the MessageState).
 * Modified DebugHudState to allow user-supplied VersionedObjects to be displayed
-    instead of forcing them to be created through the API.    
+    instead of forcing them to be created through the API.
 * Added a CameraState to make it easier to independently set camera parameters like
     FOV, near, and far plane values.
 * Modified SimTime to initialize baseTime to current time on the first frame so
@@ -42,13 +46,13 @@ Version 1.2.0
 * Fixed an NPE in CompositeAppState.addChild() when called after the outer state is
     attached but before it was initialized.  See PR #5.
 * Added SimTime.getUnlockedTime() which will return a SimTime-translated time
-    between frames, ie: not frame locked.    
+    between frames, ie: not frame locked.
 * Set sourceCompatibility to 1.7 and turned on detailed 'unchecked' warnings
 * Suppressed 'unchecked' warnings in some methods of EntityContainer, EventBus,
     and DecaySystem where it is known that the operations are safe or safe-ish,
     ie: we know we did it for a reason and don't need to be reminded all the time.
 * Increased Zay-ES versions to 1.3.0
-        
+
 
 Version 1.1.0
 --------------
@@ -57,13 +61,13 @@ Version 1.1.0
 * Added the ability to add/remove global 'dispatch' listeners to the
     EventBus.  This is useful for things like lifecycle logging or
     other debug/status related operations.
-* Fixed the EventBus to properly check superclasses for autowired 
+* Fixed the EventBus to properly check superclasses for autowired
     event listener methods.
 * Exposed the DebugHudState's element IDs to make it easier to restyle
     the debug HUD.
 
 
-Version 1.0.3 
+Version 1.0.3
 --------------
 * Flipped the GameLoop's update loop to sleep when idle instead of
     only after an actual update was run.
@@ -72,9 +76,9 @@ Version 1.0.3
 * Modified GameSystemManager to log its update errors before sending
     them to the event bus as a fatal error.
 * Modified the EventBus to log.debug() any events that are undelivered.
-* Modified the build.gradle to replace the JME version with a specific 
+* Modified the build.gradle to replace the JME version with a specific
     version instead of letting it float.  I think alpha4 is generally
-    the minimum accepted 3.1 version at this point. 
+    the minimum accepted 3.1 version at this point.
     Did the same for all of the floating version references.
 
 Version 1.0.2
@@ -85,7 +89,7 @@ Version 1.0.2
 * Fixed the DebugHudState to clear the background of the "screen" container regardless
     of style settings.
 * Fixed a bug where the wrong class was being reported in the exception message for
-    adding event bus listeners.     
+    adding event bus listeners.
 
 
 Version 1.0.1
