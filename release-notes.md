@@ -1,12 +1,13 @@
 Version 1.3.0 (latest)
 --------------
-* Upped the Zay-ES-net version to 1.3.1 to get the entity set filtering
+* Upped the Zay-ES-net version to 1.4.0 to get the entity set filtering
     bug fix.
 * CompositeAppState modified to use SafeArrayList.getArray() in for loops.
 * Modified GameLoop's default frame interval constant to be public: GameLoop.FPS_60
 * Added a GameSystemsState utility for managing a GameSystemManager in
     single player games.    
 * Added a MemoryDebugState utility that displays memory stats using the DebugHudState.
+* Upped Lemur and Zay-ES/Zay-ES-Net dependencies to latest versions (1.12.0 and 1.3.1/1.4.0 respectively.)
 
 
 Version 1.2.0 
