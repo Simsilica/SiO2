@@ -1,5 +1,8 @@
 Version 1.3.1 (unreleased)
 --------------
+* Fixed a an issue where EntityContainer.stop() wasn't clearing the internal entity set
+    reference causing other issues if operations were performed on the container after
+    stop.
 
 
 Version 1.3.0 (latest)
