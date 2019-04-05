@@ -215,6 +215,7 @@ public abstract class EntityContainer<T> {
     public void stop() {
         removeObjects(entities);
         this.entities.release();
+        this.entities = null;
     }
     
     @Override
