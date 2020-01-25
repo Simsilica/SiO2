@@ -39,6 +39,7 @@ package com.simsilica.sim;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.slf4j.*;
 
 /**
  *  A standard 'background thread' game loop implementation that
@@ -51,11 +52,12 @@ public class GameLoop {
 
     public static final long FPS_60 = 16666667L;
 
+    static Logger log = LoggerFactory.getLogger(GameLoop.class);
+
     private final GameSystemManager systems;
     private final Runner loop = new Runner();
 
     private long updateRate;
-    //private long idleSleepTime = 0;
     private LoopSleepStrategy sleepStrategy = new LegacyLoopSleepStrategy(FPS_60);
 
     /**
@@ -154,7 +156,7 @@ public class GameLoop {
             // Still support the old behavior
             ((LegacyLoopSleepStrategy)sleepStrategy).setIdleSleepTime(idleSleepTime);
         } else {
-            throw new UnsupportedOperationException("Directly setting idleSleepTime only works with legacy sleep strategy");
+            log.warn("Directly setting idleSleepTime only works with legacy sleep strategy");
         }
     }
 

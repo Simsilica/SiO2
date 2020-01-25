@@ -50,6 +50,14 @@ package com.simsilica.sim;
  *  Increasing the idleSleepTime to 1 will cause the loop to always give
  *  up at least one time slice... making CPU look nice but often a time
  *  slice is too long to maintain accurate loop timing.
+ *  This is especially true on Windows where there is no way to sleep
+ *  for less than a millisecond and on newer windows versions, it's much
+ *  worse.  For deeper background, see:
+ *    https://dzone.com/articles/locksupportparknanos-under-the-hood-and-the-curiou
+ *
+ *  For what it's worth, on my 6 core Windows 7 box running with sleep(0), I never
+ *  see any CPUs idle-pegging at an update rate of 60 hz.  So LegacyLoopSleepStrategy
+ *  is probably a good suggestion for Windows-based machines.
  *
  *  @author    Paul Speed
  */
@@ -95,7 +103,7 @@ public class LegacyLoopSleepStrategy implements LoopSleepStrategy {
     }
 
     @Override
-    public void loopSleep( long currentFrameTime, long pollDelta, long lastFrameTime, long systemUpdateLength ) throws InterruptedException {
+    public void loopSleep( long currentFrameTime, long pollDelta, long lastUpdateTime, long systemUpdateLength ) throws InterruptedException {
 
         // Below are the comments from the original implementation.
         // -pspeed 2020/01/25

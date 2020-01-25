@@ -4,6 +4,8 @@ Version 1.4.0 (unreleased)
     reference causing other issues if operations were performed on the container after
     stop.
 * Refactored GameLoop to allow setting a custom loop sleep strategy.
+* Added a NanoLoopSleepStrategy that uses LockSupport.parkNanos() to sleep and may
+    perform better on some OSes.
 
 
 Version 1.3.0 (latest)

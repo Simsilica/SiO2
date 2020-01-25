@@ -55,11 +55,11 @@ public interface LoopSleepStrategy {
      *
      *  @param currentFrameTime is the actual system clock nano time at the beginning of this frame.
      *  @param pollDelta is the nanos since the last time the update loop ran.
-     *  @param lastFrameTime is the system clock nano time the last time that systems.update() was run.
+     *  @param lastUpdateTime is the system clock nano time the last time that systems.update() was run.
      *  @param systemUpdateLength is the actual nanoseconds that systems.update() took to perform the last time it
      *          was run.
      */
-    public void loopSleep( long currentFrameTime, long pollDelta, long lastFrameTime, long systemUpdateLength ) throws InterruptedException;
+    public void loopSleep( long currentFrameTime, long pollDelta, long lastUpdateTime, long systemUpdateLength ) throws InterruptedException;
 
     /**
      *  Sets the desired update rate which can be used to calculate
