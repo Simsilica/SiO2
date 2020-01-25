@@ -1,8 +1,9 @@
-Version 1.3.1 (unreleased)
+Version 1.4.0 (unreleased)
 --------------
 * Fixed a an issue where EntityContainer.stop() wasn't clearing the internal entity set
     reference causing other issues if operations were performed on the container after
     stop.
+* Refactored GameLoop to allow setting a custom loop sleep strategy.
 
 
 Version 1.3.0 (latest)
