@@ -6,6 +6,8 @@ Version 1.4.0 (unreleased)
 * Refactored GameLoop to allow setting a custom loop sleep strategy.
 * Added a NanoLoopSleepStrategy that uses LockSupport.parkNanos() to sleep and may
     perform better on some OSes.
+* Added a standard MovementState with default mappings for mouse, keyboard, and joystick
+    and a default wiring to the standard JME camera. The movement target is configurable.
 
 
 Version 1.3.0 (latest)

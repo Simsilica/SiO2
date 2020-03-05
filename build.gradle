@@ -66,6 +66,8 @@ dependencies {
 
     compile "com.simsilica:lemur:1.12.0"
 
+    compile "com.simsilica:sim-math:1.4.0"
+
     compile "com.simsilica:zay-es:1.3.1"
     compile "com.simsilica:zay-es-net:1.4.0"
 
