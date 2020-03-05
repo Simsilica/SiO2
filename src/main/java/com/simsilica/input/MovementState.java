@@ -365,7 +365,12 @@ public class MovementState extends BaseAppState {
             } else if( func == MovementFunctions.F_MOVE ) {
                 movementForce.z = value * currentSpeed;
             } else if( func == MovementFunctions.F_STRAFE ) {
-                movementForce.x = value * currentSpeed;
+                // Mappings are set to treat right as positive and left as
+                // negative because that's the way things like mice and joysticks
+                // are already setup.  However, this is backwards from JME's handedness
+                // which when looking down Z, left is positive.  So we'll swap the
+                // force.
+                movementForce.x = -value * currentSpeed;
             } else if( func == MovementFunctions.F_ELEVATE ) {
                 movementForce.y = value * currentSpeed;
             }
