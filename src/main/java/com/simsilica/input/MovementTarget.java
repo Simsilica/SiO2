@@ -46,6 +46,11 @@ import com.simsilica.mathd.*;
 public interface MovementTarget {
 
     /**
+     *  Called when the target is first set to the MovementState.
+     */
+    public void initialize( MovementState state );
+
+    /**
      *  Called once per frame to let the target update its position
      *  in whatever implementation-specific approach that it chooses.
      *  movementForces are the scaled vectors of force as collected

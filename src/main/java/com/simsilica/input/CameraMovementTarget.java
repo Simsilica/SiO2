@@ -91,6 +91,10 @@ public class CameraMovementTarget implements MovementTarget {
     }
 
     @Override
+    public void initialize( MovementState state ) {
+    }
+
+    @Override
     public void move( Quatd rotation, Vec3d movementForces, double tpf ) {
         if( movementForces.lengthSq() == 0 ) {
             // No movement
