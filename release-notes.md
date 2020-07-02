@@ -1,4 +1,4 @@
-Version 1.5.0 (unreleased)
+Version 1.5.0 (latest)
 --------------
 * Added an initialize and terminate methods to MovementTarget for the MovementState to
     call when the target is set.
@@ -6,7 +6,7 @@ Version 1.5.0 (unreleased)
     changes.
 
 
-Version 1.4.0 (latest)
+Version 1.4.0
 --------------
 * Fixed a an issue where EntityContainer.stop() wasn't clearing the internal entity set
     reference causing other issues if operations were performed on the container after
