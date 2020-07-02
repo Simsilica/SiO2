@@ -1,7 +1,9 @@
-Version 1.4.1 (unreleased)
+Version 1.5.0 (unreleased)
 --------------
-* Added an initialize method to MovementTarget for the MovementState to
+* Added an initialize and terminate methods to MovementTarget for the MovementState to
     call when the target is set.
+* Added an AbstractMovementTarget class to shield subclasses from future interface
+    changes.
 
 
 Version 1.4.0 (latest)

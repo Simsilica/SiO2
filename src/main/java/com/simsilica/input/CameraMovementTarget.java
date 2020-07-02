@@ -47,7 +47,7 @@ import com.simsilica.mathd.*;
  *
  *  @author    Paul Speed
  */
-public class CameraMovementTarget implements MovementTarget {
+public class CameraMovementTarget extends AbstractMovementTarget {
 
     private Camera camera;
     private boolean relativeForward = true;
@@ -88,10 +88,6 @@ public class CameraMovementTarget implements MovementTarget {
 
     public boolean isRelativeUp() {
         return relativeUp;
-    }
-
-    @Override
-    public void initialize( MovementState state ) {
     }
 
     @Override

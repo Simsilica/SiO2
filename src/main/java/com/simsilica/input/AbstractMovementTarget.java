@@ -43,37 +43,19 @@ import com.simsilica.mathd.*;
  *
  *  @author    Paul Speed
  */
-public interface MovementTarget {
+public abstract class AbstractMovementTarget implements MovementTarget {
 
     /**
-     *  Called when the target is first set to the MovementState.
+     *  Default implementation does nothing.
      */
-    public void initialize( MovementState state );
+    @Override
+    public void initialize( MovementState state ) {
+    }
     
     /**
-     *  Called when the target is removed/replace in the MovementState.
+     *  Default implementation does nothing.
      */
-    public void terminate( MovementState state );
-
-    /**
-     *  Called once per frame to let the target update its position
-     *  in whatever implementation-specific approach that it chooses.
-     *  movementForces are the scaled vectors of force as collected
-     *  from the input devices, where z is forward, x is 'strafe', and
-     *  y is up/down.  These values are premultiplied by "currentSpeed"
-     *  but not by tpf.
-     */
-    public void move( Quatd rotation, Vec3d movementForces, double tpf );
-
-    /**
-     *  Called to set the target's rotation based on current input
-     *  state.
-     */
-    public void setRotation( Quatd rotation );
-
-    /**
-     *  Called during initialization to get the initial target rotation.
-     *  This will be used to initialize the yaw/pitch tracked by the MovementState.
-     */
-    public Quatd getRotation();
+    @Override
+    public void terminate( MovementState state ) {
+    }
 }
