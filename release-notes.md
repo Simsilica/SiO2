@@ -1,3 +1,6 @@
+Version 1.5.1 (unreleased)
+--------------
+
 Version 1.5.0 (latest)
 --------------
 * Added an initialize and terminate methods to MovementTarget for the MovementState to
