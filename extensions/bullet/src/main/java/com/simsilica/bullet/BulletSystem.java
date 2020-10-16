@@ -582,7 +582,7 @@ public PhysicsSpace getSpace() {
                     + "\n    B wn:" + event.getNormalWorldOnB()
                     + " dist:" + event.getDistance1());*/
             
-            for( EntityCollisionListener l : collisionListeners ) {
+            for( EntityCollisionListener l : collisionListeners.getArray() ) {
                 l.collision(a, b, event);
             }
             
