@@ -1,6 +1,10 @@
 Version 1.6.0 (unreleased)
 --------------
 * Added a CubeSceneState for quickly adding a fully lit test scene to an application.
+* Added a DefaultSceneProcessor which is basically an empty implementation of JME's
+    SceneProcessor interface.
+* Fixed DebugHudState to automatically resize its screen layout when the viewport
+    size changes.
 
 
 Version 1.5.0 (latest)

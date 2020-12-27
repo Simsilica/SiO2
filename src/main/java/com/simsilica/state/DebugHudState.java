@@ -36,28 +36,29 @@
 
 package com.simsilica.state;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.*;
+
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.math.Vector3f;
+import com.jme3.post.SceneProcessor;
 import com.jme3.renderer.Camera;
+import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Node;
 import com.jme3.util.SafeArrayList;
-import com.simsilica.lemur.Axis;
-import com.simsilica.lemur.Container;
-import com.simsilica.lemur.FillMode;
-import com.simsilica.lemur.HAlignment;
-import com.simsilica.lemur.Label;
+
+import com.simsilica.lemur.*;
 import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.SpringGridLayout;
-import com.simsilica.lemur.core.VersionedHolder;
-import com.simsilica.lemur.core.VersionedObject;
-import com.simsilica.lemur.core.VersionedReference;
+import com.simsilica.lemur.core.*;
 import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.style.ElementId;
-import java.util.HashMap;
-import java.util.Map;
 
+import com.simsilica.post.DefaultSceneProcessor;
 
 /**
  *  This app state provides easy access to put dynamic debug information
@@ -68,6 +69,8 @@ import java.util.Map;
  *  @author    Paul Speed
  */
 public class DebugHudState extends BaseAppState {
+
+    static Logger log = LoggerFactory.getLogger(DebugHudState.class);
 
     public enum Location { Top, Left, Bottom, Right };
 
@@ -81,6 +84,9 @@ public class DebugHudState extends BaseAppState {
     private Node hudRoot;   
     private Container screen;
     private float zOffset = 0;
+
+    private ReshapeListener reshapeListener = new ReshapeListener();
+    private boolean sizeInvalid;
     
     private Container top;
     private Container bottom;
@@ -179,6 +185,10 @@ public class DebugHudState extends BaseAppState {
         return ((SimpleApplication)getApplication()).getGuiNode();
     }
          
+    protected ViewPort getHudViewPort() {
+        return getApplication().getGuiViewPort();
+    }
+         
     public void setZOffset( float z ) {
         this.zOffset = z;
     }
@@ -191,7 +201,7 @@ public class DebugHudState extends BaseAppState {
     protected void initialize( Application app ) {
         
         screen = new Container(new BorderLayout(), SCREEN_ID);
-        screen.setBackground(null);
+        screen.setBackground(null); 
  
         ElementId containerId = CONTAINER_ID;       
         top = screen.addChild(new Container(new SpringGridLayout(Axis.X, Axis.Y), containerId), 
@@ -202,7 +212,7 @@ public class DebugHudState extends BaseAppState {
         // For now we'll just do this but I think we need a sub container to 
         // really make things lay out right
         left = screen.addChild(new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Last), containerId), BorderLayout.Position.West);        
-        right = screen.addChild(new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Last), containerId), BorderLayout.Position.East);        
+        right = screen.addChild(new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Last), containerId), BorderLayout.Position.East);
     }
 
     @Override
@@ -213,11 +223,18 @@ public class DebugHudState extends BaseAppState {
         Camera cam = getApplication().getCamera();
         screen.setPreferredSize(null); // to make sure it can calculate it
         Vector3f pref = screen.getPreferredSize();
+ 
+        if( log.isTraceEnabled() ) {       
+            log.trace("resetScreenSize()  cam:" + cam.getWidth() + ", " + cam.getHeight());
+        }
         
         // Not sure why set size is not working but preferred size will.  It just
         // means we need to recalculate it in the case that z might change.
         //screen.setSize(new Vector3f(cam.getWidth(), cam.getHeight(), pref.z));
         screen.setPreferredSize(new Vector3f(cam.getWidth(), cam.getHeight(), pref.z));
+        screen.setLocalTranslation(0, cam.getHeight(), zOffset);        
+        
+        sizeInvalid = false;
     }
 
     @Override
@@ -225,11 +242,15 @@ public class DebugHudState extends BaseAppState {
         Camera cam = getApplication().getCamera();
         screen.setLocalTranslation(0, cam.getHeight(), zOffset);        
         getHudRoot().attachChild(screen);
+        getHudViewPort().addProcessor(reshapeListener);
         resetScreenSize();        
     }
 
     @Override
     public void update( float tpf ) {
+        if( sizeInvalid ) {
+            resetScreenSize();
+        }
         for( DebugView view : views.getArray() ) {
             view.update();
         }
@@ -238,6 +259,7 @@ public class DebugHudState extends BaseAppState {
     @Override
     protected void onDisable() {
         screen.removeFromParent();
+        getHudViewPort().removeProcessor(reshapeListener);
     }
     
     private class DebugView {
@@ -261,4 +283,20 @@ public class DebugHudState extends BaseAppState {
             }
         }
     }
+
+    /**
+     *  The only way I've found in JME to listen for reshape events
+     *  is to hook in a scene processor.
+     */    
+    private class ReshapeListener extends DefaultSceneProcessor {
+        @Override
+        public void reshape( ViewPort vp, int w, int h ) {
+            if( log.isTraceEnabled() ) {
+                log.trace("reshape(" + vp + ", " + w + ", " + h + ")");
+            }
+            sizeInvalid = true;
+        }            
+    }
 }
+
+
