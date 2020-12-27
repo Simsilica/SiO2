@@ -1,5 +1,7 @@
-Version 1.5.1 (unreleased)
+Version 1.6.0 (unreleased)
 --------------
+* Added a CubeSceneState for quickly adding a fully lit test scene to an application.
+
 
 Version 1.5.0 (latest)
 --------------
