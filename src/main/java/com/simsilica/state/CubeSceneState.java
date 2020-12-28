@@ -43,6 +43,7 @@ import com.jme3.app.state.BaseAppState;
 import com.jme3.light.*;
 import com.jme3.material.*;
 import com.jme3.math.*;
+import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.*;
 import com.jme3.scene.shape.Box;
 
@@ -123,6 +124,9 @@ public class CubeSceneState extends BaseAppState {
         mat.setColor("Ambient", color);
         mat.setBoolean("UseMaterialColors", true);
         geom.setMaterial(mat);
+        
+        geom.setShadowMode(ShadowMode.CastAndReceive);
+        
         scene.attachChild(geom);        
     }
     
