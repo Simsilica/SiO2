@@ -5,6 +5,9 @@ Version 1.6.0 (unreleased)
     SceneProcessor interface.
 * Fixed DebugHudState to automatically resize its screen layout when the viewport
     size changes.
+* Updated JME version to 3.3.  (To get the new AppState ID methods.)
+* Added a JobState class and Job interface for running background jobs in a
+    simple and JME-friendly way.
 
 
 Version 1.5.0 (latest)
