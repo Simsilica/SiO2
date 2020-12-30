@@ -72,6 +72,7 @@ public class CubeSceneState extends BaseAppState {
     }        
 
     public CubeSceneState( ColorRGBA color, boolean includeLights ) {
+        this.scene = new Node("Cube Scene");
         this.color = color;
         this.includeLights = includeLights;
         if( includeLights ) {
@@ -87,6 +88,10 @@ public class CubeSceneState extends BaseAppState {
             spotLight.setSpotOuterAngle(FastMath.DEG_TO_RAD * 15);
             spotLight.setSpotInnerAngle(FastMath.DEG_TO_RAD * 10);
         }
+    }
+
+    public Node getScene() {
+        return scene;
     }
 
     public boolean getIncludeLights() {
@@ -108,6 +113,17 @@ public class CubeSceneState extends BaseAppState {
     public SpotLight getSpotLight() {
         return spotLight;
     }
+ 
+    public Geometry createCube( float xExtent, float yExtent, float zExtent, ColorRGBA color ) {
+        Box b = new Box(xExtent, yExtent, zExtent);
+        Geometry geom = new Geometry("Box", b);
+        Material mat = new Material(getApplication().getAssetManager(), "Common/MatDefs/Light/Lighting.j3md");
+        mat.setColor("Diffuse", color);
+        mat.setColor("Ambient", color);
+        mat.setBoolean("UseMaterialColors", true);
+        geom.setMaterial(mat);
+        return geom;
+    }
     
     protected Node getRoot() {
         return ((SimpleApplication)getApplication()).getRootNode();
@@ -115,19 +131,9 @@ public class CubeSceneState extends BaseAppState {
     
     @Override
     protected void initialize( Application app ) {
-        scene = new Node("Cube Scene");
-
-        Box b = new Box(1, 1, 1);
-        Geometry geom = new Geometry("Box", b);
-        Material mat = new Material(app.getAssetManager(), "Common/MatDefs/Light/Lighting.j3md");
-        mat.setColor("Diffuse", color);
-        mat.setColor("Ambient", color);
-        mat.setBoolean("UseMaterialColors", true);
-        geom.setMaterial(mat);
-        
+        Geometry geom = createCube(1, 1, 1, color);
         geom.setShadowMode(ShadowMode.CastAndReceive);
-        
-        scene.attachChild(geom);        
+        scene.attachChild(geom);
     }
     
     @Override
