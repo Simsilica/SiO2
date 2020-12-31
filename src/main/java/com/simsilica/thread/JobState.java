@@ -161,7 +161,19 @@ public class JobState extends BaseAppState {
         if( log.isTraceEnabled() ) {
             log.trace("Attempting to cancel:" + job);
         }
-        return workers.getQueue().remove(runner);
+        if( workers.getQueue().remove(runner) ) {
+            // Then cleanup the book-keeping, too
+            queuedJobs.remove(job);
+            runnerIndex.remove(job);
+            
+            // Note: the above assumes that the thread canceling the job
+            // is the same one that might call execute() else the race 
+            // condition mentioned above could mean that we remove a
+            // just-added job.  Someday a write lock is probably warranted 
+            // at least for the book-keeping updates.
+            return true;
+        }
+        return false;
     }    
 
     /**
