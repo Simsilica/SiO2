@@ -125,6 +125,12 @@ public class CompositeAppState extends BaseAppState {
         }
         return null;
     }
+
+    protected void clearChildren() {
+        for( AppStateEntry e : states.getArray() ) {
+            removeChild(e.state);
+        }
+    }
     
     @Override 
     public void stateAttached( AppStateManager stateManager ) {

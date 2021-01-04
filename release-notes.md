@@ -8,6 +8,8 @@ Version 1.6.0 (unreleased)
 * Updated JME version to 3.3.  (To get the new AppState ID methods.)
 * Added a JobState class and Job interface for running background jobs in a
     simple and JME-friendly way.
+* Added some standard simple chat service classes for networked apps.
+* Added CompositeAppState.clearChildren()
 
 
 Version 1.5.0 (latest)
