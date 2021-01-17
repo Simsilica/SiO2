@@ -10,6 +10,8 @@ Version 1.6.0 (unreleased)
     simple and JME-friendly way.
 * Added some standard simple chat service classes for networked apps.
 * Added CompositeAppState.clearChildren()
+* Modified MovementState to handle null movement targets. The state will be 
+    automatically enabled/disabled with non-null/null movement targets, respectively.
 
 
 Version 1.5.0 (latest)

@@ -95,8 +95,13 @@ public class MovementState extends BaseAppState {
             this.target.terminate(this);
         }
         this.target = target;
-        target.initialize(this);
-        initializeRotation(target.getRotation());
+        if( target != null ) {
+            target.initialize(this);
+            initializeRotation(target.getRotation());
+            setEnabled(true);
+        } else {
+            setEnabled(false);
+        }
     }
 
     public MovementTarget getMovementTarget() {
