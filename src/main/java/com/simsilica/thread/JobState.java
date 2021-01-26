@@ -243,17 +243,17 @@ public class JobState extends BaseAppState {
         // Some jobs have no real work to do and it's unfair to delay other jobs just
         // because of that.
         JobRunner job = null;
-        int count = 0;
+        double totalWork = 0;
         while( (job = toFinish.poll()) != null ) {
             if( log.isTraceEnabled() ) {
                 log.trace("Finishing job:" + job.job + " at priority:" + job.priority);
             }
-            if( job.job.runOnUpdate() ) {
-                count++;
-                if( finishPerFrame >= 0 && count >= finishPerFrame ) {
-                    break;
-                }
-            }
+            double work = job.job.runOnUpdate();
+            totalWork += work;
+            if( finishPerFrame >= 0 && totalWork >= finishPerFrame ) {
+                // Any stragglers will be caught on the next pass                
+                break;
+            }  
         }
         
         queuedCount.updateObject(queuedJobs.size());

@@ -56,8 +56,15 @@ public interface Job {
     public void runOnWorker();
     
     /**
-     *  Called on the JME render thread when the background 
-     *  processing has completed.
+     *  Called on the JME render thread when the background  processing 
+     *  has completed.  Returns a rough indicator of the amount of work
+     *  performed relative to the amount of work that is allowed per
+     *  update of the scheduler.  For example, if "finishPerFrame" is 2
+     *  then this would allow 2 jobs that return 1.0, or 20 jobs that return
+     *  0.1... or any number of jobs that return 0.  It's a way to limit
+     *  the amount of work done on update in a way that allows 'no-ops',
+     *  'lots of updates', and 'barely any updates' to be dealt with
+     *  intelligently. 
      */
-    public boolean runOnUpdate();
+    public double runOnUpdate();
 }
