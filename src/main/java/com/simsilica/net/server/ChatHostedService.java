@@ -84,6 +84,7 @@ public class ChatHostedService extends AbstractHostedConnectionService {
      */
     public ChatHostedService( int channel ) {
         this.channel = channel;
+        setAutoHost(false);
     }
  
     protected ChatSessionImpl getChatSession( HostedConnection conn ) {
