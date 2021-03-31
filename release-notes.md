@@ -1,4 +1,4 @@
-Version 1.6.0 (unreleased)
+Version 1.6.0 (latest)
 --------------
 * Added a CubeSceneState for quickly adding a fully lit test scene to an application.
 * Added a DefaultSceneProcessor which is basically an empty implementation of JME's
@@ -10,11 +10,11 @@ Version 1.6.0 (unreleased)
     simple and JME-friendly way.
 * Added some standard simple chat service classes for networked apps.
 * Added CompositeAppState.clearChildren()
-* Modified MovementState to handle null movement targets. The state will be 
+* Modified MovementState to handle null movement targets. The state will be
     automatically enabled/disabled with non-null/null movement targets, respectively.
 
 
-Version 1.5.0 (latest)
+Version 1.5.0
 --------------
 * Added an initialize and terminate methods to MovementTarget for the MovementState to
     call when the target is set.
