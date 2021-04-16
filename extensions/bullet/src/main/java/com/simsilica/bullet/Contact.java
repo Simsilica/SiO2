@@ -73,7 +73,8 @@ public class Contact implements EntityComponent {
         this.type2 = type2;
         this.typeMask = type1 | type2;
         this.location = location;
-        this.normal = normal;              
+        this.normal = normal; 
+        this.energy = energy;
     }   
  
     public static Contact create( EntityPhysicsObject object1, EntityPhysicsObject object2,
