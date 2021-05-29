@@ -1,5 +1,8 @@
 Version 1.6.1 (unreleased)
 --------------
+* Fixed a bug in MovementState where disabled states would be auto-enabled if the 
+    default camera initialization ran.
+    
 
 
 Version 1.6.0 (latest)

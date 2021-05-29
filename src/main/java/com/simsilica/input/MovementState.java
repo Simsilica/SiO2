@@ -91,6 +91,10 @@ public class MovementState extends BaseAppState {
      *  target has been provided.
      */
     public void setMovementTarget( MovementTarget target ) {
+        setMovementTarget(target, true);
+    }
+    
+    public void setMovementTarget( MovementTarget target, boolean autoEnable ) {
         if( this.target != null ) {
             this.target.terminate(this);
         }
@@ -98,7 +102,7 @@ public class MovementState extends BaseAppState {
         if( target != null ) {
             target.initialize(this);
             initializeRotation(target.getRotation());
-            setEnabled(true);
+            setEnabled(autoEnable);
         } else {
             setEnabled(false);
         }
@@ -261,7 +265,7 @@ public class MovementState extends BaseAppState {
         if( target == null ) {
             // Setup one for the application camera
             log.info("Setting up default CameraMovementTarget for the application camera");
-            setMovementTarget(new CameraMovementTarget(app.getCamera()));
+            setMovementTarget(new CameraMovementTarget(app.getCamera()), false);
         }
 
         // Make sure the default mappings are initialized if not already

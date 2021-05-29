@@ -1,12 +1,12 @@
-include 'extensions:bullet'
-include 'demos:bullet'
-include 'demos:bullet-char'
+//include 'extensions:bullet'
+//include 'demos:bullet'
+//include 'demos:bullet-char'
 
 rootProject.name = 'sio2'
 
 // More sensible sub-project names for jars and stuff
-project(":extensions:bullet").name = "sio2-bullet"
-project(":demos:bullet").name = "sio2-bullet-demo"
-project(":demos:bullet-char").name = "sio2-bullet-char-demo"
+//project(":extensions:bullet").name = "sio2-bullet"
+//project(":demos:bullet").name = "sio2-bullet-demo"
+//project(":demos:bullet-char").name = "sio2-bullet-char-demo"
 
 

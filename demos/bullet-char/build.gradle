@@ -6,8 +6,8 @@ mainClassName='com.simsilica.demo.bullet.Main'
 
 version='1.0.0-SNAPSHOT'
 
-//ext.jmeVersion = "3.2.1-stable" 
-ext.jmeVersion = "3.3.0-SNAPSHOT"
+//ext.jmeVersion = "3.2.1-stable"
+ext.jmeVersion = "3.4.0-SNAPSHOT"
 
 sourceCompatibility = 1.7
 
@@ -49,7 +49,7 @@ dependencies {
     } else {
         compile("org.jmonkeyengine:jme3-jbullet:$jmeVersion") {
             exclude group: 'jbullet', module:'jbullet' 
-            exclude group: 'stack-alloc', module:'stack-alloc' 
+            exclude group: 'stack-alloc', module:'stack-alloc'
         }
         compile files('lib/jbullet.jar')
         runtime files('lib/stack-alloc.jar')
