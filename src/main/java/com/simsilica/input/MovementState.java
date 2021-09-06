@@ -265,7 +265,7 @@ public class MovementState extends BaseAppState {
         if( target == null ) {
             // Setup one for the application camera
             log.info("Setting up default CameraMovementTarget for the application camera");
-            setMovementTarget(new CameraMovementTarget(app.getCamera()), false);
+            setMovementTarget(new CameraMovementTarget(app.getCamera()), isEnabled());
         }
 
         // Make sure the default mappings are initialized if not already
@@ -360,7 +360,7 @@ public class MovementState extends BaseAppState {
 
         @Override
         public void valueActive( FunctionId func, double value, double tpf ) {
-
+        
             // Setup rotations and movements speeds based on current
             // axes states.
             if( func == MovementFunctions.F_Y_LOOK ) {
