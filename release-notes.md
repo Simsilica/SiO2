@@ -2,7 +2,8 @@ Version 1.6.1 (unreleased)
 --------------
 * Fixed a bug in MovementState where disabled states would be auto-enabled if the 
     default camera initialization ran.
-    
+* Added a more general WorkerPool class to encapsulate the job management of
+    JobState.  Modified JobState to delegate to it.    
 
 
 Version 1.6.0 (latest)

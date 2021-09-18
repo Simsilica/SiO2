@@ -59,18 +59,9 @@ public class JobState extends BaseAppState {
 
     public static final int DEFAULT_PRIORITY = Integer.MAX_VALUE;
 
-    private int poolSize;
-    private ThreadPoolExecutor workers; 
-    private ConcurrentLinkedQueue<JobRunner> toFinish = new ConcurrentLinkedQueue<>();
     private int finishPerFrame = 1;
     
-    private ConcurrentHashMap<Job, Job> queuedJobs = new ConcurrentHashMap<>();
-    
-    // An imperfect way of keeping track of the runners for a particular
-    // job... but ok with the way it's used here.
-    private ConcurrentHashMap<Job, JobRunner> runnerIndex = new ConcurrentHashMap<>();   
-    
-    private AtomicLong jobSequence = new AtomicLong(0); 
+    private WorkerPool workers;
 
     // Some stats.  These are only updated on the render thread.
     private VersionedHolder<Integer> queuedCount = new VersionedHolder<>(0);
@@ -91,12 +82,9 @@ public class JobState extends BaseAppState {
      */
     public JobState( String id, int poolSize, int finishPerFrame ) {
         super(id);       
-        this.poolSize = poolSize;
         this.finishPerFrame = finishPerFrame;
         
-        // Need to do it manually if we want to give our own queue implementation.
-        this.workers = new ThreadPoolExecutor(poolSize, poolSize, 0L, TimeUnit.MILLISECONDS,
-                                              new PriorityBlockingQueue<Runnable>());
+        workers = new WorkerPool(poolSize);
     }
  
     /**
@@ -119,7 +107,7 @@ public class JobState extends BaseAppState {
      *  first.
      */
     public void execute( Job job ) {
-        execute(job, DEFAULT_PRIORITY);
+        workers.execute(job);
     }
 
     /**
@@ -128,17 +116,7 @@ public class JobState extends BaseAppState {
      *  first.
      */
     public void execute( Job job, int priority ) {
-        // Right now we don't support changes in priority
-        Job old = queuedJobs.putIfAbsent(job, job);
-        if( old == null ) {
-            if( log.isTraceEnabled() ) {
-                log.trace("Queuing:" + job + "  at:" + priority);
-            }
-            // It's a new job
-            JobRunner runner = new JobRunner(job, priority); 
-            runnerIndex.put(job, runner); 
-            workers.execute(runner);
-        }
+        workers.execute(job, priority);
     }
 
     /**
@@ -148,32 +126,7 @@ public class JobState extends BaseAppState {
      *  a thread.
      */
     public boolean cancel( Job job ) {
-        // Note that there is a slight but innocuous race condition here
-        // in that we may be able to find a JobRunner in the index that
-        // is not in the queue anymore when we try to remove it.  This
-        // is ok, though.  It means the thread picked up the job between
-        // when we grabbed the runner and when we tried to remove it 
-        // from the queue so we won't be able to cancel it anyway.
-        JobRunner runner = runnerIndex.get(job);
-        if( runner == null ) {
-            return false;
-        }
-        if( log.isTraceEnabled() ) {
-            log.trace("Attempting to cancel:" + job);
-        }
-        if( workers.getQueue().remove(runner) ) {
-            // Then cleanup the book-keeping, too
-            queuedJobs.remove(job);
-            runnerIndex.remove(job);
-            
-            // Note: the above assumes that the thread canceling the job
-            // is the same one that might call execute() else the race 
-            // condition mentioned above could mean that we remove a
-            // just-added job.  Someday a write lock is probably warranted 
-            // at least for the book-keeping updates.
-            return true;
-        }
-        return false;
+        return workers.cancel(job);
     }    
 
     /**
@@ -185,7 +138,7 @@ public class JobState extends BaseAppState {
      *  needs to be run again to get the latest updates or whatever.
      */
     public boolean isQueued( Job job ) {
-        return queuedJobs.containsKey(job);
+        return workers.isQueued(job);
     }
 
     /**
@@ -225,7 +178,8 @@ public class JobState extends BaseAppState {
     
     @Override
     protected void cleanup( Application app ) {
-        workers.shutdownNow();
+        // Maintaining original functionality by passing 'false'.
+        workers.shutdownNow(false);
     }
     
     @Override
@@ -237,74 +191,9 @@ public class JobState extends BaseAppState {
     }
     
     @Override
-    public void update( float tpf ) {
-        
-        // Run a job cleanup until one indicates that it actually did something
-        // Some jobs have no real work to do and it's unfair to delay other jobs just
-        // because of that.
-        JobRunner job = null;
-        double totalWork = 0;
-        while( (job = toFinish.poll()) != null ) {
-            if( log.isTraceEnabled() ) {
-                log.trace("Finishing job:" + job.job + " at priority:" + job.priority);
-            }
-            double work = job.job.runOnUpdate();
-            totalWork += work;
-            if( finishPerFrame >= 0 && totalWork >= finishPerFrame ) {
-                // Any stragglers will be caught on the next pass                
-                break;
-            }  
-        }
-        
-        queuedCount.updateObject(queuedJobs.size());
-        activeCount.updateObject(workers.getActiveCount());        
-    }
-       
-    
-    private class JobRunner implements Runnable, Comparable<JobRunner> {
-        private Job job;
-        private int priority;
-        
-        // Keep a job ID just to make sure we can always sort
-        // jobs even if their priority is the same.  Earlier job
-        // wins in that case. 
-        private long jobId = jobSequence.getAndIncrement();
-        
-        public JobRunner( Job job, int priority ) {
-            this.job = job;
-            this.priority = priority;
-        }
-        
-        public int compareTo( JobRunner other ) {
-            if( priority < other.priority ) {
-                return -1;
-            } else if( priority > other.priority ) {
-                return 1;
-            }
-            if( jobId < other.jobId ) {
-                return -1;
-            } else if( jobId > other.jobId ) {
-                return 1;
-            }
-            return 0;
-        }
-        
-        public void run() {
-            
-            // We're running now so remove from the active set
-            queuedJobs.remove(job);
-            runnerIndex.remove(job);
-        
-            if( log.isTraceEnabled() ) {
-                log.trace("Running background job:" + job + " at priority:" + priority);
-            }
-            try {
-                job.runOnWorker();
-            } catch( Exception e ) {
-                log.error("Error running job:" + job, e);
-                return;
-            }
-            toFinish.add(this);
-        }
-    }
-}
+    public void update( float tpf ) {        
+        workers.update(finishPerFrame);
+        queuedCount.updateObject(workers.getQueuedJobCount());
+        activeCount.updateObject(workers.getActiveJobCount());
+    }       
+}   
