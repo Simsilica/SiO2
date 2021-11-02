@@ -1,36 +1,36 @@
 /*
  * $Id$
- * 
+ *
  * Copyright (c) 2015, Simsilica, LLC
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions 
+ * modification, are permitted provided that the following conditions
  * are met:
- * 
- * 1. Redistributions of source code must retain the above copyright 
+ *
+ * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
- * 
- * 2. Redistributions in binary form must reproduce the above copyright 
- *    notice, this list of conditions and the following disclaimer in 
- *    the documentation and/or other materials provided with the 
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
  *    distribution.
- * 
- * 3. Neither the name of the copyright holder nor the names of its 
- *    contributors may be used to endorse or promote products derived 
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
@@ -63,20 +63,21 @@ import org.slf4j.LoggerFactory;
  *  @author    Paul Speed
  */
 public class GameSystemManager {
- 
+
     static Logger log = LoggerFactory.getLogger(GameSystemManager.class);
- 
+
     enum State { Terminated, Initializing, Initialized, Starting, Started, Stopping, Stopped, Terminating };
- 
-    private State state = State.Terminated; 
+
+    private State state = State.Terminated;
     private final Map<Class, Object> index = new HashMap<>();
     private final List<GameSystem> systems = new ArrayList<>();
     private GameSystem[] systemArray = null;
     private final SimTime stepTime = new SimTime();
     private final SimEvent simEvent = new SimEvent(this); // can reuse it
- 
+
     public GameSystemManager() {
-        register(TaskDispatcher.class, new TaskDispatcher());    
+        register(TaskDispatcher.class, new TaskDispatcher());
+        register(Blackboard.class, new Blackboard());
     }
 
     /**
@@ -91,7 +92,7 @@ public class GameSystemManager {
         }
         return dispatcher.enqueue(callable);
     }
- 
+
     private GameSystem[] getArray() {
         if( systemArray != null ) {
             return systemArray;
@@ -99,7 +100,7 @@ public class GameSystemManager {
         systemArray = systems.toArray(new GameSystem[systems.size()]);
         return systemArray;
     }
- 
+
     public void initialize() {
         log.trace("initialize()");
         if( state != State.Terminated ) {
@@ -116,7 +117,7 @@ public class GameSystemManager {
         state = State.Initialized;
         EventBus.publish(SimEvent.simInitialized, simEvent);
     }
-    
+
     public boolean isInitialized() {
         switch( state ) {
             case Initialized:
@@ -129,7 +130,7 @@ public class GameSystemManager {
                 return false;
         }
     }
- 
+
     public boolean isStarted() {
         switch( state ) {
             case Started:
@@ -138,7 +139,7 @@ public class GameSystemManager {
                 return false;
         }
     }
-    
+
     public void terminate() {
         log.trace("terminate()");
         if( !isInitialized() ) {
@@ -155,7 +156,7 @@ public class GameSystemManager {
         state = State.Terminated;
         EventBus.publish(SimEvent.simTerminated, simEvent);
     }
- 
+
     public void start() {
         log.trace("start()");
         if( !isInitialized() ) {
@@ -164,11 +165,11 @@ public class GameSystemManager {
         if( isStarted() ) {
             return;
         }
-        
+
         // Update to the latest time
         updateTime();
-        
-        state = State.Starting;                        
+
+        state = State.Starting;
         EventBus.publish(SimEvent.simStarting, simEvent);
         for( GameSystem sys : getArray() ) {
             if( log.isTraceEnabled() ) {
@@ -179,7 +180,7 @@ public class GameSystemManager {
         state = State.Started;
         EventBus.publish(SimEvent.simStarted, simEvent);
     }
- 
+
     public void stop() {
         log.trace("stop()");
         if( !isStarted() ) {
@@ -196,10 +197,10 @@ public class GameSystemManager {
         state = State.Stopped;
         EventBus.publish(SimEvent.simStopped, simEvent);
     }
- 
+
     protected void attachSystem( GameSystem system ) {
         systems.add(system);
-        systemArray = null; 
+        systemArray = null;
         if( isInitialized() || state == State.Initializing ) {
             if( log.isTraceEnabled() ) {
                 log.trace("initializing:" + system);
@@ -211,12 +212,12 @@ public class GameSystemManager {
                 log.trace("starting:" + system);
             }
             system.start();
-        }  
-    } 
+        }
+    }
 
     protected void detachSystem( GameSystem system ) {
         systems.remove(system);
-        systemArray = null;   
+        systemArray = null;
         if( isStarted() && state != State.Stopping ) {
             if( log.isTraceEnabled() ) {
                 log.trace("stopping:" + system);
@@ -229,8 +230,8 @@ public class GameSystemManager {
             }
             system.terminate(this);
         }
-    } 
- 
+    }
+
     /**
      *  Adds a system without index registration.  Useful
      *  for cases where type lookup is neither desired or
@@ -239,7 +240,7 @@ public class GameSystemManager {
     public void addSystem( GameSystem system ) {
         attachSystem(system);
     }
-    
+
     /**
      *  Removes a previously added system.
      */
@@ -247,7 +248,7 @@ public class GameSystemManager {
         index.values().remove(system); // just in case
         detachSystem(system);
     }
-    
+
     /**
      *  Returns a system-level object preoviously registered using the
      *  register() method.
@@ -255,7 +256,7 @@ public class GameSystemManager {
     public <T> T get( Class<T> type ) {
         return get(type, false);
     }
-    
+
     /**
      *  Returns a system-level object preoviously registered using the
      *  register() method.  If failOnMiss is true then an IllegalArgumentException
@@ -268,7 +269,7 @@ public class GameSystemManager {
         }
         return type.cast(result);
     }
-    
+
     /**
      *  Registers a system-level object that will be associated with the
      *  specified type for later retrieval.  If the object implements GameSystem
@@ -285,7 +286,7 @@ public class GameSystemManager {
         }
         return type.cast(object);
     }
- 
+
     /**
      *  Updates the current SimTime and calls update on all of
      *  the systems.  It is up to the application to periodically
@@ -297,7 +298,7 @@ public class GameSystemManager {
         try {
             // Update the step time...
             updateTime();
-            
+
             // Update the systems.
             for( GameSystem sys : getArray() ) {
                 sys.update(stepTime);
@@ -309,16 +310,16 @@ public class GameSystemManager {
             EventBus.publish(ErrorEvent.fatalError, new ErrorEvent(t));
         }
     }
-    
+
     protected void updateTime() {
-        long time = System.nanoTime(); 
-        stepTime.update(time);    
-    } 
-    
+        long time = System.nanoTime();
+        stepTime.update(time);
+    }
+
     /**
      *  Returns the SimTime representing the time at the beginning of the
      *  most recent update() call.  Note: this is not thread safe if the
-     *  GameSystemManager is being updated from a background thread like 
+     *  GameSystemManager is being updated from a background thread like
      *  GameLoop.  GameLoop provides its own stable thread-safe step time.
      */
     public SimTime getStepTime() {

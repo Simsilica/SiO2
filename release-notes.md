@@ -1,9 +1,12 @@
-Version 1.6.1 (unreleased)
+Version 1.7.0 (unreleased)
 --------------
-* Fixed a bug in MovementState where disabled states would be auto-enabled if the 
+* Fixed a bug in MovementState where disabled states would be auto-enabled if the
     default camera initialization ran.
 * Added a more general WorkerPool class to encapsulate the job management of
-    JobState.  Modified JobState to delegate to it.    
+    JobState.  Modified JobState to delegate to it.
+* Added a Blackboard class and auto-registered it with the GameSystemsManager.
+* Added a BlackboardState class for convenient access to a blackboard object
+    in client-side code.
 
 
 Version 1.6.0 (latest)
