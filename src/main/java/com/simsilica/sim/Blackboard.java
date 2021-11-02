@@ -42,6 +42,8 @@ import java.util.concurrent.*;
 
 import org.slf4j.*;
 
+import com.google.common.base.MoreObjects;
+
 /**
  *  A general place for posting standard shared global objects
  *  where services can look them up.  The blackboard is thread
@@ -83,15 +85,23 @@ public class Blackboard {
     }
 
     public <T> T get( Class<T> type ) {
-        return type.cast(index.get(new Key(type)));
+        return type.cast(get(new Key(type)));
     }
 
     public <T> T get( String id, Class<T> type ) {
-        return type.cast(index.get(new Key(id, type)));
+        return type.cast(get(new Key(id, type)));
     }
 
     public Object get( String id ) {
-        return index.get(new Key(id));
+        return get(new Key(id));
+    }
+
+    protected Object get( Key key ) {
+        Object result = index.get(key);
+        if( result == null ) {
+            throw new IllegalArgumentException("Value does not exist for:" + key);
+        }
+        return result;
     }
 
     /**
@@ -259,10 +269,12 @@ public class Blackboard {
             this.type = type;
         }
 
+        @Override
         public int hashCode() {
             return Objects.hash(id, type);
         }
 
+        @Override
         public boolean equals( Object o ) {
             if( o == this ) {
                 return true;
@@ -278,6 +290,15 @@ public class Blackboard {
                 return false;
             }
             return true;
+        }
+
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(getClass().getSimpleName())
+                .omitNullValues()
+                .add("id", id)
+                .add("type", type)
+                .toString();
         }
     }
 
