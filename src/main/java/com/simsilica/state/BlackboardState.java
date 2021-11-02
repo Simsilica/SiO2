@@ -36,12 +36,16 @@
 
 package com.simsilica.state;
 
+import java.util.function.Consumer;
+import java.util.concurrent.Callable;
+
 import org.slf4j.*;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 
 import com.simsilica.sim.Blackboard;
+import com.simsilica.sim.BlackboardListener;
 
 /**
  *  Provides generic access to a blackboard object that is convenient
@@ -87,6 +91,18 @@ public class BlackboardState extends BaseAppState {
         return blackboard.get(id);
     }
 
+    public <T> T get( Class<T> type, Callable<T> initialValue ) {
+        return blackboard.get(type, initialValue);
+    }
+
+    public <T> T get( String id, Class<T> type, Callable<T> initialValue ) {
+        return blackboard.get(id, type, initialValue);
+    }
+
+    public <T> T get( String id, Callable<T> initialValue ) {
+        return blackboard.get(id, initialValue);
+    }
+
     public void set( String id, Object value ) {
         blackboard.set(id, value);
     }
@@ -109,6 +125,26 @@ public class BlackboardState extends BaseAppState {
 
     public <T> void update( Class<? super T> type, T value ) {
         blackboard.update(type, value);
+    }
+
+    public void addBlackboardListener( BlackboardListener l ) {
+        blackboard.addBlackboardListener(l);
+    }
+
+    public void removeBlackboardListener( BlackboardListener l ) {
+        blackboard.removeBlackboardListener(l);
+    }
+
+    public <T> void onInitialize( Class<T> type, Consumer<T> consumer ) {
+        blackboard.onInitialize(type, consumer);
+    }
+
+    public <T> void onInitialize( String id, Class<T> type, Consumer<T> consumer ) {
+        blackboard.onInitialize(id, type, consumer);
+    }
+
+    public void onInitialize( String id, Consumer consumer ) {
+        blackboard.onInitialize(id, consumer);
     }
 
     @Override

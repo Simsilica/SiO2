@@ -37,6 +37,7 @@
 package com.simsilica.sim;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.concurrent.*;
 
 import org.slf4j.*;
@@ -76,6 +77,7 @@ public class Blackboard {
     static Logger log = LoggerFactory.getLogger(Blackboard.class);
 
     private Map<Key, Object> index = new ConcurrentHashMap<>();
+    private List<BlackboardListener> listeners = new CopyOnWriteArrayList<>();
 
     public Blackboard() {
     }
@@ -90,6 +92,54 @@ public class Blackboard {
 
     public Object get( String id ) {
         return index.get(new Key(id));
+    }
+
+    /**
+     *  Retrieves the specified value if it exists else it will
+     *  set and return the provided value.
+     */
+    public <T> T get( Class<T> type, Callable<T> initialValue ) {
+        return type.cast(get(new Key(type), initialValue));
+    }
+
+    /**
+     *  Retrieves the specified value if it exists else it will
+     *  set and return the provided value.
+     */
+    public <T> T get( String id, Class<T> type, Callable<T> initialValue ) {
+        return type.cast(get(new Key(id, type), initialValue));
+    }
+
+    /**
+     *  Retrieves the specified value if it exists else it will
+     *  set and return the provided value.
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T get( String id, Callable<T> initialValue ) {
+        return (T)get(new Key(id), initialValue);
+    }
+
+    protected Object get( Key key, Callable initialValue ) {
+        Object existing = index.get(key);
+        if( existing != null ) {
+            return existing;
+        }
+        // It's possible that we execute the callable unnecessarily
+        // if we are being initialized from multiple threads...
+        // We'll sort of guard against that at least if all threads
+        // are attempting to initialize this key in the same way.
+        synchronized( this ) {
+            try {
+                Object newValue = initialValue.call();
+                existing = index.putIfAbsent(key, newValue);
+                if( existing == null ) {
+                    return newValue;
+                }
+                return existing;
+            } catch( Exception e ) {
+                throw new RuntimeException("Exception running:" + initialValue, e);
+            }
+        }
     }
 
     public void set( String id, Object value ) {
@@ -116,6 +166,7 @@ public class Blackboard {
             throw new IllegalArgumentException("There is already a value set for:" + key);
         }
         index.put(key, value);
+        fireUpdate(key, value);
     }
 
     public void update( String id, Object value ) {
@@ -135,6 +186,59 @@ public class Blackboard {
             index.remove(key);
         } else {
             index.put(key, value);
+        }
+        fireUpdate(key, value);
+    }
+
+    public void addBlackboardListener( BlackboardListener l ) {
+        listeners.add(l);
+    }
+
+    public void removeBlackboardListener( BlackboardListener l ) {
+        listeners.remove(l);
+    }
+
+    /**
+     *  Calls the specified consumer when the value associated with 'type'
+     *  has been set or calls it immediately if it is already set.
+     */
+    public <T> void onInitialize( Class<T> type, Consumer<T> consumer ) {
+        onInitialize(new Key(type), consumer);
+    }
+
+    /**
+     *  Calls the specified consumer when the value associated with 'id and 'type'
+     *  has been set or calls it immediately if it is already set.
+     */
+    public <T> void onInitialize( String id, Class<T> type, Consumer<T> consumer ) {
+        onInitialize(new Key(id, type), consumer);
+    }
+
+    /**
+     *  Calls the specified consumer when the value associated with 'id'
+     *  has been set or calls it immediately if it is already set.
+     */
+    public void onInitialize( String id, Consumer consumer ) {
+        onInitialize(new Key(id), consumer);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected void onInitialize( Key key, Consumer consumer ) {
+        // See if it's already set
+        Object existing = index.get(key);
+        if( existing != null ) {
+            consumer.accept(existing);
+            return;
+        }
+        addBlackboardListener(new OnInitialize(key, consumer));
+    }
+
+    protected void fireUpdate( Key key, Object value ) {
+        if( listeners.isEmpty() ) {
+            return;
+        }
+        for( BlackboardListener l : listeners ) {
+            l.valueSet(key.id, key.type, value);
         }
     }
 
@@ -174,6 +278,28 @@ public class Blackboard {
                 return false;
             }
             return true;
+        }
+    }
+
+    protected class OnInitialize implements BlackboardListener {
+        private Key filter;
+        private Consumer consumer;
+
+        public OnInitialize( Key filter, Consumer consumer ) {
+            this.filter = filter;
+            this.consumer = consumer;
+        }
+
+        @SuppressWarnings("unchecked")
+        public void valueSet( String id, Class type, Object value ) {
+            if( !Objects.equals(new Key(id, type), filter) ) {
+                return;
+            }
+            // Else it's the real deal
+            consumer.accept(value);
+
+            // and remove ourselves
+            removeBlackboardListener(this);
         }
     }
 }
