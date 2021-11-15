@@ -152,6 +152,9 @@ public class WorkerPool {
         // from the queue so we won't be able to cancel it anyway.
         JobRunner runner = runnerIndex.get(job);
         if( runner == null ) {
+            if( log.isTraceEnabled() ) {
+                log.trace("Unknown job:" + job);
+            }
             return false;
         }
         if( log.isTraceEnabled() ) {
@@ -167,7 +170,13 @@ public class WorkerPool {
             // condition mentioned above could mean that we remove a
             // just-added job.  Someday a write lock is probably warranted
             // at least for the book-keeping updates.
+            if( log.isTraceEnabled() ) {
+                log.trace("Job canceled:" + job);
+            }
             return true;
+        }
+        if( log.isTraceEnabled() ) {
+            log.trace("Job no longer in queue:" + job);
         }
         return false;
     }
@@ -308,6 +317,9 @@ public class WorkerPool {
                 activeCount.decrementAndGet();
                 errorCount.incrementAndGet();
                 return;
+            }
+            if( log.isTraceEnabled() ) {
+                log.trace("Job runOnWorker() done:" + job);
             }
             toFinish.add(this);
         }
