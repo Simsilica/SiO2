@@ -1,36 +1,36 @@
 /*
  * $Id$
- * 
+ *
  * Copyright (c) 2020, Simsilica, LLC
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions 
+ * modification, are permitted provided that the following conditions
  * are met:
- * 
- * 1. Redistributions of source code must retain the above copyright 
+ *
+ * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
- * 
- * 2. Redistributions in binary form must reproduce the above copyright 
- *    notice, this list of conditions and the following disclaimer in 
- *    the documentation and/or other materials provided with the 
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
  *    distribution.
- * 
- * 3. Neither the name of the copyright holder nor the names of its 
- *    contributors may be used to endorse or promote products derived 
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
@@ -60,33 +60,33 @@ public class JobState extends BaseAppState {
     public static final int DEFAULT_PRIORITY = Integer.MAX_VALUE;
 
     private int finishPerFrame = 1;
-    
+
     private WorkerPool workers;
 
     // Some stats.  These are only updated on the render thread.
     private VersionedHolder<Integer> queuedCount = new VersionedHolder<>(0);
     private VersionedHolder<Integer> activeCount = new VersionedHolder<>(0);
 
-    public JobState() {  
-        this(4);       
+    public JobState() {
+        this(4);
     }
 
-    public JobState( int poolSize ) {  
+    public JobState( int poolSize ) {
         this(null, poolSize, 1);
     }
 
     /**
      *  Creates a new JobState with the specified ID, worker poolSize,
-     *  and finishPerFrame count.  If finishPerFrame is -1 then all 
-     *  finishable jobs will be finished each frame. 
+     *  and finishPerFrame count.  If finishPerFrame is -1 then all
+     *  finishable jobs will be finished each frame.
      */
     public JobState( String id, int poolSize, int finishPerFrame ) {
-        super(id);       
+        super(id);
         this.finishPerFrame = finishPerFrame;
-        
+
         workers = new WorkerPool(poolSize);
     }
- 
+
     /**
      *  Sets the number of completed jobs to finish in a single render
      *  frame.  Defaults to 1.  Jobs that return false from their runOnUpdate()
@@ -96,11 +96,11 @@ public class JobState extends BaseAppState {
     public void setFinishPerFrame( int finishPerFrame ) {
         this.finishPerFrame = finishPerFrame;
     }
-    
+
     public int getFinishPerFrame() {
         return finishPerFrame;
     }
- 
+
     /**
      *  Queues the job for execution on a background thread using the
      *  default priority.  Jobs with a lower priority value are executed
@@ -127,7 +127,7 @@ public class JobState extends BaseAppState {
      */
     public boolean cancel( Job job ) {
         return workers.cancel(job);
-    }    
+    }
 
     /**
      *  Returns true if the job is already queued.  Note that this returns
@@ -144,56 +144,56 @@ public class JobState extends BaseAppState {
     /**
      *  Returns the current count of jobs waiting to be run.
      */
-    public int getQueuedCountReference() {
+    public int getQueuedCount() {
         return queuedCount.getObject();
-    }     
- 
+    }
+
     /**
      *  Returns a VersionedReference for the current count of jobs
      *  waiting to be run.
      */
     public VersionedReference<Integer> createQueuedCountReference() {
         return queuedCount.createReference();
-    }     
+    }
 
     /**
-     *  Returns the current count of jobs actually being handled by 
+     *  Returns the current count of jobs actually being handled by
      *  a thread or waiting to be 'finished'.
      */
-    public int getActiveCountReference() {
+    public int getActiveCount() {
         return activeCount.getObject();
     }
-     
+
     /**
      *  Returns a VersionedReference for the current count of jobs
      *  actually being handled by a thread or waiting to be 'finished'.
      */
     public VersionedReference<Integer> createActiveCountReference() {
         return activeCount.createReference();
-    }     
-    
+    }
+
     @Override
     protected void initialize( Application app ) {
     }
-    
+
     @Override
     protected void cleanup( Application app ) {
         // Maintaining original functionality by passing 'false'.
         workers.shutdownNow(false);
     }
-    
+
     @Override
     protected void onEnable() {
     }
-    
+
     @Override
     protected void onDisable() {
     }
-    
+
     @Override
-    public void update( float tpf ) {        
+    public void update( float tpf ) {
         workers.update(finishPerFrame);
         queuedCount.updateObject(workers.getQueuedJobCount());
         activeCount.updateObject(workers.getActiveJobCount());
-    }       
-}   
+    }
+}

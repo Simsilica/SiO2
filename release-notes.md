@@ -7,6 +7,10 @@ Version 1.7.0 (unreleased)
 * Added a Blackboard class and auto-registered it with the GameSystemsManager.
 * Added a BlackboardState class for convenient access to a blackboard object
     in client-side code.
+* Renamed the JobState.getQueuedCountReference() and getActiveCountReference()
+    to getQueuedCount() and getActiveCount() respectively.  The old one was a typo
+    and since this is a newish class, hopefully it doesn't affect too many folks
+    to fix it now.
 
 
 Version 1.6.0 (latest)
