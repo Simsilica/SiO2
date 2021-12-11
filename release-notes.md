@@ -11,6 +11,9 @@ Version 1.7.0 (unreleased)
     to getQueuedCount() and getActiveCount() respectively.  The old one was a typo
     and since this is a newish class, hopefully it doesn't affect too many folks
     to fix it now.
+* Breaking change to the CommandEntry interface where runCommand() now has a
+    boolean return value.  Returning true allows the command to keep the console
+    open.
 
 
 Version 1.6.0 (latest)
