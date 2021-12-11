@@ -18,6 +18,8 @@ version='1.6.1-SNAPSHOT'
 group='com.simsilica'
 
 ext.jmeVersion = "3.3.0-stable"
+ext.log4jVersion = '2.15.0'
+ext.slf4jVersion = '1.7.32'
 
 // Version meta-data
 ext {
@@ -73,9 +75,9 @@ dependencies {
 
     compile 'org.codehaus.groovy:groovy-all:2.4.5'
 
-    compile 'org.slf4j:slf4j-api:1.7.13'
-    compile 'org.apache.logging.log4j:log4j-api:2.5'
-    compile 'org.apache.logging.log4j:log4j-core:2.5'
+    compile "org.slf4j:slf4j-api:$slf4jVersion"
+    compile "org.apache.logging.log4j:log4j-api:$log4jVersion"
+    compile "org.apache.logging.log4j:log4j-core:$log4jVersion"
 }
 
 
