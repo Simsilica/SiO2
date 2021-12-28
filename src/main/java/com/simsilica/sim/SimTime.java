@@ -45,26 +45,35 @@ package com.simsilica.sim;
  */
 public class SimTime {
     private long frame;
-    private long time;
-    private long baseTime; // so that time can be based on some 0 value
-    private long timeOffset; // allows forcing the time to be a certain value
-    private boolean rebase = false;
+    private long lastRealTime;
+    private boolean rebase;
+    
+    /**
+     *  gameTime is the 0-based 'game time' that is adjusted based on
+     *  the advancement of 'real time' provided by update().
+     */
+    private long gameTime;
+    
     private double tpf;
     private double invTimeScale = 1000000000.0; // nanos  
     private double timeScale = 1.0 / invTimeScale;
     
     public SimTime() {
     }
-    
+
     public void update( long realTime ) {
+        long timeDelta;
         if( frame == 0 || rebase ) {
-            baseTime = realTime;
+            timeDelta = 0;
             rebase = false;
+        } else {
+            timeDelta = realTime - lastRealTime;
         }
-        realTime -= baseTime;
+        lastRealTime = realTime;
+        
         frame++;
-        tpf = (realTime - this.time) * timeScale;
-        this.time = realTime + timeOffset;
+        tpf = timeDelta * timeScale;
+        this.gameTime += timeDelta;
     }
  
     /**
@@ -77,7 +86,15 @@ public class SimTime {
      *  timesource information to something else that is trying to synch.
      */   
     public long getUnlockedTime( long realTime ) {
-        return realTime - baseTime;
+        // Figure out what time would be if realTime were
+        // passed to update.
+        long timeDelta;
+        if( frame == 0 || rebase ) {
+            timeDelta = 0;
+        } else {
+            timeDelta = realTime - lastRealTime;
+        }
+        return gameTime + timeDelta;
     }
  
     public long toSimTime( double seconds ) {
@@ -85,7 +102,7 @@ public class SimTime {
     }
  
     public long getFutureTime( double seconds ) {
-        return time + toSimTime(seconds); 
+        return gameTime + toSimTime(seconds); 
     }        
     
     public final double getTpf() {
@@ -97,7 +114,7 @@ public class SimTime {
     }
     
     public final long getTime() {
-        return time;
+        return gameTime;
     }
     
     /**
@@ -110,13 +127,12 @@ public class SimTime {
      *  some known value, say when restoring a saved game or a persistent world.
      */
     public final void setCurrentTime( long time ) {
-        this.timeOffset = time;
-        this.time = time;
+        this.gameTime = time;
         this.rebase = true;
     }
     
     public final double getTimeInSeconds() {
-        return time * timeScale;
+        return gameTime * timeScale;
     }
     
     public final double getTimeScale() {
@@ -124,7 +140,7 @@ public class SimTime {
     }
  
     public final long addMillis( long ms ) {
-        return time + ms * 1000000L;
+        return gameTime + ms * 1000000L;
     }
  
     @Override   
