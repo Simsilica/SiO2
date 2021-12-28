@@ -14,6 +14,11 @@ Version 1.7.0 (unreleased)
 * Breaking change to the CommandEntry interface where runCommand() now has a
     boolean return value.  Returning true allows the command to keep the console
     open.
+* Fixed DecaySystem to call the "fail on error" version of getSystem() when looking
+    up the entity system.
+* Updated SimTime to have a setCurrentTime() method that allows resetting the simulation
+    to a particular time, either because the game is being reloaded or because it's
+    being continued after a pause, etc..    
 
 
 Version 1.6.0 (latest)

@@ -47,6 +47,8 @@ public class SimTime {
     private long frame;
     private long time;
     private long baseTime; // so that time can be based on some 0 value
+    private long timeOffset; // allows forcing the time to be a certain value
+    private boolean rebase = false;
     private double tpf;
     private double invTimeScale = 1000000000.0; // nanos  
     private double timeScale = 1.0 / invTimeScale;
@@ -55,13 +57,14 @@ public class SimTime {
     }
     
     public void update( long realTime ) {
-        if( frame == 0 ) {
+        if( frame == 0 || rebase ) {
             baseTime = realTime;
+            rebase = false;
         }
-        realTime -= baseTime;        
+        realTime -= baseTime;
         frame++;
         tpf = (realTime - this.time) * timeScale;
-        this.time = realTime;
+        this.time = realTime + timeOffset;
     }
  
     /**
@@ -95,6 +98,21 @@ public class SimTime {
     
     public final long getTime() {
         return time;
+    }
+    
+    /**
+     *  Force the game time to a certain value.  Note that going backwards while
+     *  systems are running may have undesirable effects.  
+     *  The next immediate call to getTime() will return the specified value.
+     *  If update() is called then getTime() will return this value plus whatever
+     *  time has passed since the last time update() was called.
+     *  This is primarily used as a way for games to preset the game time to
+     *  some known value, say when restoring a saved game or a persistent world.
+     */
+    public final void setCurrentTime( long time ) {
+        this.timeOffset = time;
+        this.time = time;
+        this.rebase = true;
     }
     
     public final double getTimeInSeconds() {

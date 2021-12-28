@@ -61,7 +61,7 @@ public class DecaySystem extends AbstractGameSystem {
 
     @Override
     protected void initialize() {
-        ed = getSystem(EntityData.class);        
+        ed = getSystem(EntityData.class, true);        
         entities = new DecayContainer(ed);
     }
     
