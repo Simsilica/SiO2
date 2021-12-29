@@ -99,7 +99,12 @@ public class GameLoop {
     public SimTime getStepTime() {
         // Update only when needed so that tpf, etc. are accurate.
         if( safeTime.getTime() != lastStepTime.get() ) {
-            safeTime.update(lastStepTime.get());
+            //safeTime.update(lastStepTime.get());
+            // Just force the current time to be the last step time.
+            // safeTime's tpf is generally going to be nonsense anyway, so
+            // we'll leave it unset.  Callers that need decoupled tpf will
+            // have to decide what they want to base it on.
+            safeTime.setCurrentTime(lastStepTime.get());
         }
         return safeTime;
     }

@@ -18,7 +18,12 @@ Version 1.7.0 (unreleased)
     up the entity system.
 * Updated SimTime to have a setCurrentTime() method that allows resetting the simulation
     to a particular time, either because the game is being reloaded or because it's
-    being continued after a pause, etc..    
+    being continued after a pause, etc..
+* Refactored SimTime's internals to make time tracking easier and more flexible.
+* Updated GameLoop to call setCurrentTime() on its safe sim time instead of update(),
+    ie: the time returned by GameLoop.getStepTime()
+    This avoids a base time discrepancy but leaves a breaking change that tpf will
+    always be 0.  (tpf was generally nonsense before.)
 
 
 Version 1.6.0 (latest)
