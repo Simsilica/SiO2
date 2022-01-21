@@ -116,7 +116,22 @@ public class GameLoop {
      *  thread.
      */
     public void start() {
+        start(false);
+    }
+
+    /**
+     *  Starts the background game loop thread and initializes and
+     *  starts the game system manager (if it hasn't been initialized or started already).
+     *  The systems will be initialized and started on the game loop background
+     *  thread.  If "wait" is true then start() won't return until the
+     *  game systems have been initialized and started.  In that case, this method
+     *  will also throw an error if the game loop startup failed for some reason.
+     */
+    public void start( boolean wait ) {
         loop.start();
+        if( wait ) {
+            loop.waitForInitialized();
+        }
     }
 
     /**
@@ -198,6 +213,9 @@ public class GameLoop {
     protected class Runner extends Thread {
         private final AtomicBoolean go = new AtomicBoolean(true);
 
+        private Throwable startupFailure;
+        private boolean initialized;
+
         public Runner() {
             setName( "GameLoopThread" );
         }
@@ -211,14 +229,46 @@ public class GameLoop {
             }
         }
 
+        public synchronized void waitForInitialized() {
+            while( !initialized && startupFailure == null ) {
+                try {
+                    wait();
+                } catch( InterruptedException e ) {
+                    throw new RuntimeException("Interrupted waiting for initialize", e);
+                }
+            }
+            if( startupFailure != null ) {
+                throw new RuntimeException("Failed to initialize game loop thread", startupFailure);
+            }
+        }
+
+        protected synchronized void initialized() {
+            initialized = true;
+            notifyAll();
+        }
+
+        protected synchronized void failed( Throwable t ) {
+            startupFailure = t;
+            notifyAll();
+        }
+
         @Override
         public void run() {
 
-            if( !systems.isInitialized() ) {
-                systems.initialize();
-            }
-            if( !systems.isStarted() ) {
-                systems.start();
+            try {
+                if( !systems.isInitialized() ) {
+                    systems.initialize();
+                }
+                if( !systems.isStarted() ) {
+                    systems.start();
+                }
+                initialized();
+            } catch( RuntimeException e ) {
+                log.error("Error starting game loop", e);
+                failed(e);
+
+                // Still kill the thread
+                return;
             }
 
             long lastTime = System.nanoTime();

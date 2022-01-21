@@ -24,6 +24,11 @@ Version 1.7.0 (unreleased)
     ie: the time returned by GameLoop.getStepTime()
     This avoids a base time discrepancy but leaves a breaking change that tpf will
     always be 0.  (tpf was generally nonsense before.)
+* Updated GameLoop to allow waiting for start() to complete.  If waiting then
+    if there is an error during startup then it will be wrapped and rethrown
+    from the start(true) method.
+* Added SimEvent.simFailed and modified GameSystemsManager to publish this event
+    if either initialize() or start() fails.
 
 
 Version 1.6.0 (latest)

@@ -108,14 +108,20 @@ public class GameSystemManager {
         }
         state = State.Initializing;
         EventBus.publish(SimEvent.simInitializing, simEvent);
-        for( GameSystem sys : getArray() ) {
-            if( log.isTraceEnabled() ) {
-                log.trace("initializing:" + sys);
+        try {
+            for( GameSystem sys : getArray() ) {
+                if( log.isTraceEnabled() ) {
+                    log.trace("initializing:" + sys);
+                }
+                sys.initialize(this);
             }
-            sys.initialize(this);
+            state = State.Initialized;
+            EventBus.publish(SimEvent.simInitialized, simEvent);
+        } catch( RuntimeException e ) {
+            EventBus.publish(SimEvent.simFailed, simEvent);
+            // Rethrow the exception
+            throw e;
         }
-        state = State.Initialized;
-        EventBus.publish(SimEvent.simInitialized, simEvent);
     }
 
     public boolean isInitialized() {
@@ -171,14 +177,20 @@ public class GameSystemManager {
 
         state = State.Starting;
         EventBus.publish(SimEvent.simStarting, simEvent);
-        for( GameSystem sys : getArray() ) {
-            if( log.isTraceEnabled() ) {
-                log.trace("starting:" + sys);
+        try {
+            for( GameSystem sys : getArray() ) {
+                if( log.isTraceEnabled() ) {
+                    log.trace("starting:" + sys);
+                }
+                sys.start();
             }
-            sys.start();
+            state = State.Started;
+            EventBus.publish(SimEvent.simStarted, simEvent);
+        } catch( RuntimeException e ) {
+            EventBus.publish(SimEvent.simFailed, simEvent);
+            // Rethrow the exception
+            throw e;
         }
-        state = State.Started;
-        EventBus.publish(SimEvent.simStarted, simEvent);
     }
 
     public void stop() {
