@@ -79,6 +79,7 @@ public class MovementState extends BaseAppState {
     private double walkSpeed = 3;  // units/sec
     private double runSpeed = 10;  // units/sec
     private double currentSpeed = walkSpeed;
+    private boolean running = false;
 
     private boolean invertPitch;
 
@@ -93,7 +94,7 @@ public class MovementState extends BaseAppState {
     public void setMovementTarget( MovementTarget target ) {
         setMovementTarget(target, true);
     }
-    
+
     public void setMovementTarget( MovementTarget target, boolean autoEnable ) {
         if( this.target != null ) {
             this.target.terminate(this);
@@ -160,6 +161,7 @@ public class MovementState extends BaseAppState {
      */
     public void setWalkSpeed( double walkSpeed ) {
         this.walkSpeed = walkSpeed;
+        resetCurrentSpeed();
     }
 
     public double getWalkSpeed() {
@@ -172,6 +174,7 @@ public class MovementState extends BaseAppState {
      */
     public void setRunSpeed( double runSpeed ) {
         this.runSpeed = runSpeed;
+        resetCurrentSpeed();
     }
 
     public double getRunSpeed() {
@@ -183,15 +186,20 @@ public class MovementState extends BaseAppState {
      *  multiplier.
      */
     public void setRunning( boolean running ) {
+        this.running = running;
+        resetCurrentSpeed();
+    }
+
+    public boolean isRunning() {
+        return runSpeed == currentSpeed;
+    }
+
+    protected void resetCurrentSpeed() {
         if( running ) {
             this.currentSpeed = runSpeed;
         } else {
             this.currentSpeed = walkSpeed;
         }
-    }
-
-    public boolean isRunning() {
-        return runSpeed == currentSpeed;
     }
 
     /**
@@ -360,7 +368,7 @@ public class MovementState extends BaseAppState {
 
         @Override
         public void valueActive( FunctionId func, double value, double tpf ) {
-        
+
             // Setup rotations and movements speeds based on current
             // axes states.
             if( func == MovementFunctions.F_Y_LOOK ) {

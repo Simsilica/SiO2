@@ -29,6 +29,8 @@ Version 1.7.0 (unreleased)
     from the start(true) method.
 * Added SimEvent.simFailed and modified GameSystemsManager to publish this event
     if either initialize() or start() fails.
+* Fixed a bug in MovementState where the provided walk speed wasn't being adopted
+    unless the run state changed.
 
 
 Version 1.6.0 (latest)
