@@ -31,6 +31,8 @@ Version 1.7.0 (unreleased)
     if either initialize() or start() fails.
 * Fixed a bug in MovementState where the provided walk speed wasn't being adopted
     unless the run state changed.
+* Migrated the build to gradle 7.4.2
+* Moved distribution to maven central.
 
 
 Version 1.6.0 (latest)

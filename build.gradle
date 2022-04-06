@@ -1,140 +1,43 @@
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        // This sucks down a lot of stuff that 'normal' users wouldn't
-        // have and won't need anyway.
-        if( project.hasProperty('releaseUser') ) {
-            classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.+'
-        }
-    }
+/**
+ *  Root-level SiO2 build script for the core library.
+ */
+
+plugins {
+    id 'sio2.published-library'
 }
 
-apply plugin: 'java'
-apply plugin: 'maven'
-
-version='1.6.1-SNAPSHOT'
+version='1.7.0-SNAPSHOT'
 group='com.simsilica'
 
 ext.jmeVersion = "3.3.0-stable"
 ext.log4jVersion = '2.15.0'
 ext.slf4jVersion = '1.7.32'
+ext.guavaVersion = '19.0'
+ext.groovyVersion = '2.4.5'
 
-// Version meta-data
-ext {
-    releaseDescription = "SiO2 ${project.version}"
-    releaseVcsTag = "${project.name}-v${project.version}"
+// Set this module's maven pom description
+publishing.publications.library(MavenPublication).pom {
+    description = 'A set of useful classes for game development.'
 }
 
-// Project-wide meta-data
-ext {
-    bintrayLabels = ['jMonkeyEngine', 'gamedev', 'util']
-    websiteUrl = 'https://github.com/Simsilica/SiO2'
-    vcsUrl = 'https://github.com/Simsilica/SiO2.git'
-    githubRepo = 'Simsilica/SiO2'
-    issueTrackerUrl = 'https://github.com/Simsilica/SiO2/issues'
-}
-
-sourceCompatibility = 1.7
-compileJava {
-    options.encoding = 'UTF-8'
-    options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
-}
-
-repositories {
-    mavenLocal()
-
-    if( JavaVersion.current() == JavaVersion.VERSION_1_7 ) {
-        // Fallback for JDK 7 that can no longer connect to jcenter with https
-        maven { url "http://jcenter.bintray.com" }
-    } else {
-        jcenter()
-    }
-}
-
-// Make sure the build file declares what it actually imports
-configurations {
-    compile.transitive = false
-}
-
-
-// In this section you declare the dependencies for your production and test code
 dependencies {
-    compile 'com.google.guava:guava:19.0'
+    api "com.google.guava:guava:$guavaVersion"
 
-    compile "org.jmonkeyengine:jme3-core:$jmeVersion"
-    compile "org.jmonkeyengine:jme3-networking:$jmeVersion"
+    api "org.jmonkeyengine:jme3-core:$jmeVersion"
+    api "org.jmonkeyengine:jme3-networking:$jmeVersion"
 
-    compile "com.simsilica:lemur:1.12.0"
+    api "com.simsilica:lemur:1.16.0"
 
-    compile "com.simsilica:sim-math:1.4.0"
+    api "com.simsilica:sim-math:1.5.0"
 
-    compile "com.simsilica:zay-es:1.3.1"
-    compile "com.simsilica:zay-es-net:1.4.0"
+    api "com.simsilica:zay-es:1.4.0"
+    api "com.simsilica:zay-es-net:1.5.0"
 
-    compile 'org.codehaus.groovy:groovy-all:2.4.5'
+    implementation "org.codehaus.groovy:groovy-all:$groovyVersion"
 
-    compile "org.slf4j:slf4j-api:$slf4jVersion"
-    compile "org.apache.logging.log4j:log4j-api:$log4jVersion"
-    compile "org.apache.logging.log4j:log4j-core:$log4jVersion"
-}
-
-
-// Configuration to produce maven-repo style -sources and -javadoc jars
-task sourcesJar(type: Jar) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-    exclude '**/.backups'
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
-
-artifacts {
-    archives sourcesJar
-    archives javadocJar
-}
-
-// Common configuration for the root and all 'real' children.
-// The plan is to just keep maven-repo publishing related stuff
-// here so that the other build files can look as close to
-// regular java builds as possible.
-configure(allprojects.findAll {it.name != 'extensions'}) {
-
-    apply plugin: 'maven' // for installing to maven local
-
-    // Common group ID for all projects here
-    group='com.simsilica'
-
-    ext {
-        websiteUrl = 'https://github.com/Simsilica/SiO2'
-        vcsUrl = 'https://github.com/Simsilica/SiO2.git'
-        githubRepo = 'Simsilica/SiO2'
-        issueTrackerUrl = 'https://github.com/Simsilica/SiO2/issues'
-    }
-
-    // One non-maven thing in this block to keep us honest with respect to
-    // imports
-    configurations {
-        compile.transitive = false
-    }
-
-    // Centralizing this bintray reference here so it's easier to
-    // remove when JME is in jcenter().
-    repositories {
-        jcenter()
-        mavenLocal()
-    }
-}
-
-
-// Put this at the end or it won't pick up the project.version and stuff
-if( project.hasProperty('releaseUser') ) {
-    apply plugin: 'com.jfrog.bintray'
-    apply from: 'https://raw.githubusercontent.com/Simsilica/gradle-plugins/master/simtools-release.gradle'
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+    implementation "org.apache.logging.log4j:log4j-api:$log4jVersion"
+    implementation "org.apache.logging.log4j:log4j-core:$log4jVersion"
 }
 
 
