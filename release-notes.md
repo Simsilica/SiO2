@@ -1,4 +1,4 @@
-Version 1.7.0 (unreleased)
+Version 1.7.0 (latest)
 --------------
 * Fixed a bug in MovementState where disabled states would be auto-enabled if the
     default camera initialization ran.
@@ -35,7 +35,7 @@ Version 1.7.0 (unreleased)
 * Moved distribution to maven central.
 
 
-Version 1.6.0 (latest)
+Version 1.6.0
 --------------
 * Added a CubeSceneState for quickly adding a fully lit test scene to an application.
 * Added a DefaultSceneProcessor which is basically an empty implementation of JME's
