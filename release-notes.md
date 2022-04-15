@@ -1,3 +1,9 @@
+Version 1.8.0 (unreleased)
+--------------
+* Change the target version of the project to Java 8 to match the few
+    Java 8 classes that are used.
+
+
 Version 1.7.0 (latest)
 --------------
 * Fixed a bug in MovementState where disabled states would be auto-enabled if the
