@@ -80,11 +80,13 @@ public abstract class EntityContainer<T> {
     private Class parameter;
     
     @SuppressWarnings("unchecked")
+    @SafeVarargs
     protected EntityContainer( EntityData ed, Class<? extends EntityComponent>... componentTypes ) {
         this(ed, null, componentTypes);
     }
  
     @SuppressWarnings("unchecked")
+    @SafeVarargs
     protected EntityContainer( EntityData ed, ComponentFilter filter, Class<? extends EntityComponent>... componentTypes ) {
         this.ed = ed;
         this.filter = filter;
