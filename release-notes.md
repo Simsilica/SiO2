@@ -3,6 +3,8 @@ Version 1.8.0 (unreleased)
 * Change the target version of the project to Java 8 to match the few
     Java 8 classes that are used.
 * Added @SafeVarargs to EntityContainer to avoid unchecked varargs warnings.
+* Slightly refactored ChatHostedService to make it easier for server consoles
+    to listen to and send chat messages.
 
 
 Version 1.7.0 (latest)

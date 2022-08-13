@@ -68,7 +68,7 @@ public class ChatHostedService extends AbstractHostedConnectionService {
     private RmiHostedService rmiService;
     private int channel;
 
-    private List<ChatSessionImpl> players = new CopyOnWriteArrayList<>();
+    private List<ChatSessionListener> listeners = new CopyOnWriteArrayList<>();
  
     /**
      *  Creates a new chat service that will use the default reliable channel
@@ -85,6 +85,14 @@ public class ChatHostedService extends AbstractHostedConnectionService {
     public ChatHostedService( int channel ) {
         this.channel = channel;
         setAutoHost(false);
+    }
+ 
+    public void addChatSessionListener( ChatSessionListener l ) {
+        listeners.add(l);
+    }
+    
+    public void removeChatSessionListener( ChatSessionListener l ) {
+        listeners.remove(l);
     }
  
     protected ChatSessionImpl getChatSession( HostedConnection conn ) {
@@ -116,10 +124,10 @@ public class ChatHostedService extends AbstractHostedConnectionService {
         RmiRegistry rmi = rmiService.getRmiRegistry(conn);
         rmi.share((byte)channel, session, ChatSession.class);
         
-        players.add(session);
+        listeners.add(session);
         
         // Send the enter event to other players
-        for( ChatSessionImpl chatter : players ) {
+        for( ChatSessionListener chatter : listeners ) {
             if( chatter == session ) {
                 // Don't send our enter event to ourselves
                 continue;
@@ -150,10 +158,10 @@ public class ChatHostedService extends AbstractHostedConnectionService {
             conn.setAttribute(ATTRIBUTE_SESSION, null);
             
             // Remove player session from the active sessions list 
-            players.remove(player);
+            listeners.remove(player);
  
             // Send the leave event to other players
-            for( ChatSessionImpl chatter : players ) {
+            for( ChatSessionListener chatter : listeners ) {
                 if( chatter == player ) {
                     // Don't send our enter event to ourselves
                     continue;
@@ -163,11 +171,15 @@ public class ChatHostedService extends AbstractHostedConnectionService {
         }
     }
 
-    protected void postMessage( ChatSessionImpl from, String message ) {
-        log.info("chat> " + from.name + " said:" + message);
-        for( ChatSessionImpl chatter : players ) {
-            chatter.newMessage(from.conn.getId(), from.name, message);
+    public void postMessage( int clientId, String name, String message ) {
+        log.info("chat> " + name + " said:" + message);
+        for( ChatSessionListener chatter : listeners ) {
+            chatter.newMessage(clientId, name, message);
         }
+    }
+
+    protected void postMessage( ChatSessionImpl from, String message ) {
+        postMessage(from.conn.getId(), from.name, message);
     }
  
     /**
@@ -209,8 +221,10 @@ public class ChatHostedService extends AbstractHostedConnectionService {
         @Override
         public List<String> getPlayerNames() {
             List<String> results = new ArrayList<>();
-            for( ChatSessionImpl chatter : players ) {
-                results.add(chatter.name);
+            for( ChatSessionListener chatter : listeners ) {
+                if( chatter instanceof ChatSessionImpl ) {
+                    results.add(((ChatSessionImpl)chatter).name);
+                }
             }
             return results;
         }        
