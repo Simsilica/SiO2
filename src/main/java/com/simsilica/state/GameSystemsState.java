@@ -54,16 +54,25 @@ public class GameSystemsState extends BaseAppState {
 
     static Logger log = LoggerFactory.getLogger(GameSystemsState.class);
 
-    private GameSystemManager systems = new GameSystemManager();
+    private GameSystemManager systems;
     private GameLoop loop;
     private boolean background;
     private long updateRateNanos = GameLoop.FPS_60; // when running in its own thread.
 
     public GameSystemsState() {
-        this(true);
+        this(new GameSystemManager(), true);
+    }
+
+    public GameSystemsState( GameSystemManager systems ) {
+        this(systems, true);
     }
 
     public GameSystemsState( boolean background ) {
+        this(new GameSystemManager(), background);
+    }
+
+    public GameSystemsState( GameSystemManager systems, boolean background ) {
+        this.systems = systems;
         this.background = background;
     }
 

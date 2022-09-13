@@ -7,6 +7,8 @@ Version 1.8.0 (unreleased)
     can listen for chat messages.
 * Added ChatHostedService.postMessage() so that a server console can post
     messages to the chat.
+* Added some alternate constructors to GameSystemState that allow passing
+    of an existing/custom GameSystemManager.    
 
 
 Version 1.7.0 (latest)
