@@ -9,8 +9,8 @@ Version 1.8.0 (unreleased)
     messages to the chat.
 * Added some alternate constructors to GameSystemState that allow passing
     of an existing/custom GameSystemManager.
-* Added GameSystemState.getGameSystemManager() and 
-    GameSystemState.get(class, boolean) methods.
+* Added GameSystemsState.getGameSystemManager() and 
+    GameSystemsState.get(class, boolean) methods.
 
 
 Version 1.7.0 (latest)
