@@ -8,7 +8,9 @@ Version 1.8.0 (unreleased)
 * Added ChatHostedService.postMessage() so that a server console can post
     messages to the chat.
 * Added some alternate constructors to GameSystemState that allow passing
-    of an existing/custom GameSystemManager.    
+    of an existing/custom GameSystemManager.
+* Added GameSystemState.getGameSystemManager() and 
+    GameSystemState.get(class, boolean) methods.
 
 
 Version 1.7.0 (latest)

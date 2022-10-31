@@ -108,8 +108,16 @@ public class GameSystemsState extends BaseAppState {
         return systems.get(type);
     }
 
+    public <T> T get( Class<T> type, boolean failOnError ) {
+        return systems.get(type, failOnError);
+    }
+
     public <T, S extends T> T register( Class<T> type, S object ) {
         return systems.register(type, object);
+    }
+
+    public GameSystemManager getGameSystemManager() {
+        return systems; 
     }
 
     @Override
