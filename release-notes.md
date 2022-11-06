@@ -11,6 +11,7 @@ Version 1.8.0 (unreleased)
     of an existing/custom GameSystemManager.
 * Added GameSystemsState.getGameSystemManager() and 
     GameSystemsState.get(class, boolean) methods.
+* Added RecurringTaskSystem for executing general tasks once per frame.    
 
 
 Version 1.7.0 (latest)
