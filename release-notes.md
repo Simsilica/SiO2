@@ -11,7 +11,15 @@ Version 1.8.0 (unreleased)
     of an existing/custom GameSystemManager.
 * Added GameSystemsState.getGameSystemManager() and 
     GameSystemsState.get(class, boolean) methods.
-* Added RecurringTaskSystem for executing general tasks once per frame.    
+* Added RecurringTaskSystem for executing general tasks once per frame.
+* Added JobState/WorkerPool.isBusy() to indicate if there are still pending/running
+    workers.
+* Added JobState.getPoolSize() for querying the number of threads in the pool.
+* Modified JobState.getQueuedCount()/getActiveCount() to return the live numbers
+    from WorkerPool instead of the (likely delayed) numbers that the versioned
+    objects are tracking.
+* Fixed an issue where shutdown workers were spewing InterruptedException stack
+    traces to the logs during shutdown.
 
 
 Version 1.7.0 (latest)

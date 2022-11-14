@@ -42,6 +42,8 @@ import java.util.concurrent.atomic.*;
 
 import org.slf4j.*;
 
+import com.google.common.base.Throwables;
+
 /**
  *  Manages a thread pool that can be used to run Job objects that
  *  have a two phase execution: 1) run on a background thread, 2)
@@ -81,6 +83,8 @@ public class WorkerPool {
     private AtomicInteger activeCount = new AtomicInteger(0);
 
     private AtomicLong errorCount = new AtomicLong(0);
+    
+    private boolean shuttingDown = false;
 
     /**
      *  Creates a worker pool with 4 worker threads.
@@ -209,6 +213,14 @@ public class WorkerPool {
     }
 
     /**
+     *  Returns true if the worker pool has any pending work to do
+     *  or is in the middle of doing that work.
+     */
+    public boolean isBusy() {
+        return (getActiveJobCount() + getQueuedJobCount()) > 0;
+    }
+
+    /**
      *  Performs an immediate shutdown where all active threads are
      *  interrupted and any jobs queued are not executed.  Jobs waiting
      *  to finish can sitll be finished by calling the update()
@@ -216,6 +228,7 @@ public class WorkerPool {
      *  have completed.
      */
     public void shutdownNow( boolean awaitTermination ) {
+        shuttingDown = true;
         workers.shutdownNow();
         if( awaitTermination ) {
             log.info("Waiting for thread pool shutdown");
@@ -313,9 +326,13 @@ public class WorkerPool {
             try {
                 job.runOnWorker();
             } catch( Exception e ) {
-                log.error("Error running job:" + job, e);
-                activeCount.decrementAndGet();
-                errorCount.incrementAndGet();
+                if( shuttingDown && Throwables.getRootCause(e) instanceof InterruptedException ) {
+                    log.info("Thread interrupted successfully");
+                } else {
+                    log.error("Error running job:" + job, e);
+                    activeCount.decrementAndGet();
+                    errorCount.incrementAndGet();
+                }
                 return;
             }
             if( log.isTraceEnabled() ) {

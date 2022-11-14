@@ -142,10 +142,28 @@ public class JobState extends BaseAppState {
     }
 
     /**
+     *  Returns the pool size that was set for the worker pool.
+     */
+    public int getPoolSize() {
+        return workers.getPoolSize();
+    }
+
+    /**
+     *  Returns true if the worker pool has any pending work to do
+     *  or is in the middle of doing that work.
+     */
+    public boolean isBusy() {
+        return workers.isBusy();
+    }
+
+    /**
      *  Returns the current count of jobs waiting to be run.
      */
     public int getQueuedCount() {
-        return queuedCount.getObject();
+        //return queuedCount.getObject();
+        // The holder could be as much as a full frame delayed
+        // so we'll query the workers directly.
+        return workers.getQueuedJobCount();
     }
 
     /**
@@ -161,7 +179,10 @@ public class JobState extends BaseAppState {
      *  a thread or waiting to be 'finished'.
      */
     public int getActiveCount() {
-        return activeCount.getObject();
+        //return activeCount.getObject();
+        // The holder could be as much as a full frame delayed
+        // so we'll query the workers directly.
+        return workers.getActiveJobCount();
     }
 
     /**
