@@ -59,7 +59,7 @@ import com.simsilica.lemur.style.ElementId;
  */
 public class MessageState extends BaseAppState {
  
-    public static final ElementId MESSAGE_LABEL_ID = new ElementId("message.label");
+    public static final ElementId MESSAGE_LABEL_ID = new ElementId("console.message.label");
  
     private Node messageRoot;
     private Vector3f offset = new Vector3f();

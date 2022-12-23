@@ -20,6 +20,9 @@ Version 1.8.0 (unreleased)
     objects are tracking.
 * Fixed an issue where shutdown workers were spewing InterruptedException stack
     traces to the logs during shutdown.
+* Changed the element ID for MessageState labels to be "console.message.label"
+    instead of "message.label".  The latter was too generic in styling and was 
+    often catching optionPanel.message.label as well.    
 
 
 Version 1.7.0 (latest)
