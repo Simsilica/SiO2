@@ -1,4 +1,4 @@
-Version 1.8.0 (unreleased)
+Version 1.8.0 (latest)
 --------------
 * Change the target version of the project to Java 8 to match the few
     Java 8 classes that are used.
@@ -23,9 +23,11 @@ Version 1.8.0 (unreleased)
 * Changed the element ID for MessageState labels to be "console.message.label"
     instead of "message.label".  The latter was too generic in styling and was 
     often catching optionPanel.message.label as well.    
+* Fixed BulletSystem collision listener iteration to use getArray() instead of
+    creating an iterator every time. (thanks Ali-RS)
+    
 
-
-Version 1.7.0 (latest)
+Version 1.7.0 
 --------------
 * Fixed a bug in MovementState where disabled states would be auto-enabled if the
     default camera initialization ran.
