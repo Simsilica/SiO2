@@ -1,3 +1,8 @@
+Version 1.8.1 (unreleased)
+--------------
+* Added player joined/left log messages to ChatHostedService.
+
+
 Version 1.8.0 (latest)
 --------------
 * Change the target version of the project to Java 8 to match the few

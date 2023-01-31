@@ -134,6 +134,7 @@ public class ChatHostedService extends AbstractHostedConnectionService {
             }
             chatter.playerJoined(conn.getId(), playerName);
         }
+        log.info("chat> " + playerName + " joined.");
     }
         
     /**
@@ -167,7 +168,9 @@ public class ChatHostedService extends AbstractHostedConnectionService {
                     continue;
                 }
                 chatter.playerLeft(player.conn.getId(), player.name);
-            }        
+            }
+                    
+            log.info("chat> " + player.name + " left.");
         }
     }
 
