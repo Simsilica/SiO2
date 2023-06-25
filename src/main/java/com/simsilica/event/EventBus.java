@@ -176,6 +176,9 @@ public class EventBus {
             try {
                 l.newEvent(type, event);
                 delivered = true;
+            } catch( EventAbortedException e ) {
+                log.error("Event aborted:" + event + " for type:" + type + " at handler:" + l, e);
+                throw e;
             } catch( Throwable t ) {
                 log.error("Error handling event:" + event + " for type:" + type + "  in handler:" + l, t);
                 if( type != ErrorEvent.dispatchError ) {

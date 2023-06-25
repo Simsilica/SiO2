@@ -1,6 +1,8 @@
 Version 1.8.1 (unreleased)
 --------------
 * Added player joined/left log messages to ChatHostedService.
+* Added an EventAbortedException and suppoet to EventBus for handling
+    it as a way to stop delivery for a specific event.
 
 
 Version 1.8.0 (latest)
