@@ -3,6 +3,10 @@ Version 1.8.1 (unreleased)
 * Added player joined/left log messages to ChatHostedService.
 * Added an EventAbortedException and suppoet to EventBus for handling
     it as a way to stop delivery for a specific event.
+* Added watch/unwatch methods to the Blackboard and BlackboardState to
+    allow more easily watching specific blackboard properties.
+* Modified BlackboardState to support a state ID to make it easier to
+    have multiple blackboards in an application.    
 
 
 Version 1.8.0 (latest)

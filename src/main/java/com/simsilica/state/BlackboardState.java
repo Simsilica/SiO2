@@ -72,6 +72,20 @@ public class BlackboardState extends BaseAppState {
         this.blackboard = blackboard;
     }
 
+    public BlackboardState( String id ) {
+        this(id, new Blackboard());
+    }
+
+    /**
+     *  Creates a blackboard state with the specified instance or
+     *  null if this state should look up the blackboard from
+     *  the GameSystemsState.
+     */
+    public BlackboardState( String id, Blackboard blackboard ) {
+        super(id);
+        this.blackboard = blackboard;
+    }
+
     public Blackboard getBlackboard() {
         return blackboard;
     }
@@ -133,6 +147,22 @@ public class BlackboardState extends BaseAppState {
 
     public void removeBlackboardListener( BlackboardListener l ) {
         blackboard.removeBlackboardListener(l);
+    }
+
+    public <T> void watch( String id, Consumer<T> consumer ) {
+        blackboard.watch(id, consumer);
+    }
+
+    public <T> void watch( String id, Class<T> type, Consumer<T> consumer ) {
+        blackboard.watch(id, type, consumer);
+    }
+    
+    public <T> void unwatch( String id, Consumer<T> consumer ) {
+        blackboard.unwatch(id, consumer);
+    }
+
+    public <T> void unwatch( String id, Class<T> type, Consumer<T> consumer ) {
+        blackboard.unwatch(id, type, consumer);
     }
 
     public <T> void onInitialize( Class<T> type, Consumer<T> consumer ) {

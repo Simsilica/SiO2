@@ -151,7 +151,7 @@ public class Blackboard {
             }
         }
     }
-
+    
     public void set( String id, Object value ) {
         if( value == null ) {
             throw new IllegalArgumentException("Value cannot be null");
@@ -206,6 +206,49 @@ public class Blackboard {
 
     public void removeBlackboardListener( BlackboardListener l ) {
         listeners.remove(l);
+    }
+
+    public <T> void watch( String id, Consumer<T> consumer ) {
+        watch(new Key(id), consumer);
+    }
+
+    public <T> void watch( String id, Class<T> type, Consumer<T> consumer ) {
+        watch(new Key(id, type), consumer);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected void watch( Key key, Consumer consumer ) {
+        // Add the listener that will notify the consumer about changes
+        listeners.add(new ValueObserver(key, consumer));
+        
+        // See if it's already set so we can notify the consumer right away
+        // and save the caller some complexity
+        Object existing = index.get(key);
+        if( existing != null ) {
+            consumer.accept(existing);
+        }
+    }
+
+    public <T> void unwatch( String id, Consumer<T> consumer ) {
+        unwatch(new Key(id), consumer);
+    }
+
+    public <T> void unwatch( String id, Class<T> type, Consumer<T> consumer ) {
+        unwatch(new Key(id, type), consumer);
+    }
+
+    protected void unwatch( Key key, Consumer consumer ) {
+        // Find our specific consumer and remove it
+        for( Iterator<BlackboardListener> it = listeners.iterator(); it.hasNext(); ) {
+            BlackboardListener l = it.next();
+            if( !(l instanceof ValueObserver) ) {
+                continue;
+            }
+            ValueObserver observer = (ValueObserver)l;
+            if( observer.consumer == consumer && observer.filter.equals(key) ) {
+                it.remove();
+            } 
+        }
     }
 
     /**
@@ -321,6 +364,24 @@ public class Blackboard {
 
             // and remove ourselves
             removeBlackboardListener(this);
+        }
+    }
+    
+    protected class ValueObserver implements BlackboardListener {
+        private Key filter;
+        private Consumer consumer;
+
+        public ValueObserver( Key filter, Consumer consumer ) {
+            this.filter = filter;
+            this.consumer = consumer;
+        }
+
+        @SuppressWarnings("unchecked")
+        public void valueSet( String id, Class type, Object value ) {
+            if( !Objects.equals(new Key(id, type), filter) ) {
+                return;
+            }
+            consumer.accept(value);
         }
     }
 }
