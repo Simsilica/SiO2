@@ -220,6 +220,10 @@ public abstract class EntityContainer<T> {
         this.entities = null;
     }
     
+    public boolean isStarted() {
+        return entities != null;
+    }
+    
     @Override
     public String toString() {
         return getClass().getName() + "[components=" + Arrays.asList(componentTypes) + "]";

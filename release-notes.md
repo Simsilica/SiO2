@@ -6,7 +6,9 @@ Version 1.8.1 (unreleased)
 * Added watch/unwatch methods to the Blackboard and BlackboardState to
     allow more easily watching specific blackboard properties.
 * Modified BlackboardState to support a state ID to make it easier to
-    have multiple blackboards in an application.    
+    have multiple blackboards in an application.
+* Added EntityContainer.isStarted() to be able to determine if a container
+    has already been started or not.
 
 
 Version 1.8.0 (latest)

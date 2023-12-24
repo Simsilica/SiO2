@@ -208,12 +208,14 @@ public class Blackboard {
         listeners.remove(l);
     }
 
-    public <T> void watch( String id, Consumer<T> consumer ) {
+    public <T> Consumer<T> watch( String id, Consumer<T> consumer ) {
         watch(new Key(id), consumer);
+        return consumer;
     }
 
-    public <T> void watch( String id, Class<T> type, Consumer<T> consumer ) {
+    public <T> Consumer<T> watch( String id, Class<T> type, Consumer<T> consumer ) {
         watch(new Key(id, type), consumer);
+        return consumer;
     }
 
     @SuppressWarnings("unchecked")

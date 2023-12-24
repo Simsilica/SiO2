@@ -149,12 +149,12 @@ public class BlackboardState extends BaseAppState {
         blackboard.removeBlackboardListener(l);
     }
 
-    public <T> void watch( String id, Consumer<T> consumer ) {
-        blackboard.watch(id, consumer);
+    public <T> Consumer<T> watch( String id, Consumer<T> consumer ) {
+        return blackboard.watch(id, consumer);
     }
 
-    public <T> void watch( String id, Class<T> type, Consumer<T> consumer ) {
-        blackboard.watch(id, type, consumer);
+    public <T> Consumer<T> watch( String id, Class<T> type, Consumer<T> consumer ) {
+        return blackboard.watch(id, type, consumer);
     }
     
     public <T> void unwatch( String id, Consumer<T> consumer ) {
