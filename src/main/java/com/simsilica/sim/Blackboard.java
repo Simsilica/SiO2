@@ -241,14 +241,13 @@ public class Blackboard {
 
     protected void unwatch( Key key, Consumer consumer ) {
         // Find our specific consumer and remove it
-        for( Iterator<BlackboardListener> it = listeners.iterator(); it.hasNext(); ) {
-            BlackboardListener l = it.next();
+        for( BlackboardListener l : listeners ) {
             if( !(l instanceof ValueObserver) ) {
                 continue;
             }
             ValueObserver observer = (ValueObserver)l;
             if( observer.consumer == consumer && observer.filter.equals(key) ) {
-                it.remove();
+                listeners.remove(l);
             } 
         }
     }
