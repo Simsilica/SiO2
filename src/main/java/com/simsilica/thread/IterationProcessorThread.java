@@ -61,15 +61,17 @@ import org.slf4j.*;
  *  onIterate()
  *  onStop()
  *
- *  Note that if one onIterate() takes long than the time between two thread.iterate()
- *  calls that the additional onIterate() calls will be skipped.
+ *  Note that there will be one onIterate() call for every iterate() call
+ *  even if onIterate() takes more than a frame to process.  It's up to the
+ *  onIterate() of IterationProcessor to gate things based on time if catching
+ *  up is not required.
  *
  *  @author    Paul Speed
  */
 public class IterationProcessorThread extends Thread {
     static Logger log = LoggerFactory.getLogger(IterationProcessorThread.class);
     
-    private Semaphore loopHold = new Semaphore(1);
+    private Semaphore loopHold = new Semaphore(0);  // at least one release must happen before processing
     private AtomicBoolean go = new AtomicBoolean(true);
     private IterationProcessor processor;
 
