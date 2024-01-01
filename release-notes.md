@@ -9,6 +9,8 @@ Version 1.8.1 (unreleased)
     have multiple blackboards in an application.
 * Added EntityContainer.isStarted() to be able to determine if a container
     has already been started or not.
+* Added an IterationProcessorThread class and IterationProcessor interface
+    for managing lock-step background processes.    
 
 
 Version 1.8.0 (latest)
