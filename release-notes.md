@@ -1,4 +1,4 @@
-Version 1.8.1 (unreleased)
+Version 1.9.0 (unreleased)
 --------------
 * Added player joined/left log messages to ChatHostedService.
 * Added an EventAbortedException and suppoet to EventBus for handling
@@ -10,7 +10,11 @@ Version 1.8.1 (unreleased)
 * Added EntityContainer.isStarted() to be able to determine if a container
     has already been started or not.
 * Added an IterationProcessorThread class and IterationProcessor interface
-    for managing lock-step background processes.    
+    for managing lock-step background processes.
+* Modified EntityUpdater to optionally use an IterationProcessorThread
+    to perform network entity updates on a background thread.
+* Added some performance monitoring to EntityUpdater to log a warning when
+    an update takes a lot longer than expected.
 
 
 Version 1.8.0 (latest)
@@ -24,7 +28,7 @@ Version 1.8.0 (latest)
     messages to the chat.
 * Added some alternate constructors to GameSystemState that allow passing
     of an existing/custom GameSystemManager.
-* Added GameSystemsState.getGameSystemManager() and 
+* Added GameSystemsState.getGameSystemManager() and
     GameSystemsState.get(class, boolean) methods.
 * Added RecurringTaskSystem for executing general tasks once per frame.
 * Added JobState/WorkerPool.isBusy() to indicate if there are still pending/running
@@ -36,13 +40,13 @@ Version 1.8.0 (latest)
 * Fixed an issue where shutdown workers were spewing InterruptedException stack
     traces to the logs during shutdown.
 * Changed the element ID for MessageState labels to be "console.message.label"
-    instead of "message.label".  The latter was too generic in styling and was 
-    often catching optionPanel.message.label as well.    
+    instead of "message.label".  The latter was too generic in styling and was
+    often catching optionPanel.message.label as well.
 * Fixed BulletSystem collision listener iteration to use getArray() instead of
     creating an iterator every time. (thanks Ali-RS)
-    
 
-Version 1.7.0 
+
+Version 1.7.0
 --------------
 * Fixed a bug in MovementState where disabled states would be auto-enabled if the
     default camera initialization ran.
