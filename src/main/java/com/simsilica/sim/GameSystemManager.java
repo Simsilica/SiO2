@@ -43,6 +43,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 /**
  *  Manages the life-cycle of a set of GameSystems.  GameSystems can
@@ -74,10 +75,23 @@ public class GameSystemManager {
     private GameSystem[] systemArray = null;
     private final SimTime stepTime = new SimTime();
     private final SimEvent simEvent = new SimEvent(this); // can reuse it
+    private SystemTiming timing;
 
     public GameSystemManager() {
         register(TaskDispatcher.class, new TaskDispatcher());
         register(Blackboard.class, new Blackboard());
+    }
+
+    /**
+     *  If set then the specified timing will collect per-frame, per-system
+     *  timing information.
+     */
+    public void setSystemTiming( SystemTiming timing ) {
+        this.timing = timing;
+    }
+
+    public SystemTiming getSystemTiming() {
+        return timing;
     }
 
     /**
@@ -311,9 +325,22 @@ public class GameSystemManager {
             // Update the step time...
             updateTime();
 
-            // Update the systems.
-            for( GameSystem sys : getArray() ) {
-                sys.update(stepTime);
+            String frame = String.format("%06d", stepTime.getFrame());
+            try( MDC.MDCCloseable temp = MDC.putCloseable("frame", frame) ) {
+                if( timing != null ) {
+                    timing.startFrame();
+                    for( GameSystem sys : getArray() ) {
+                        try( AutoCloseable info = timing.trackUpdate(sys) ) {
+                            sys.update(stepTime);
+                        }
+                    }
+                    timing.endFrame();
+                } else {
+                    // Update the systems.
+                    for( GameSystem sys : getArray() ) {
+                        sys.update(stepTime);
+                    }
+                }
             }
         } catch( Throwable t ) {
             log.error("Error updating systems", t);

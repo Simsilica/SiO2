@@ -15,6 +15,12 @@ Version 1.9.0 (unreleased)
     to perform network entity updates on a background thread.
 * Added some performance monitoring to EntityUpdater to log a warning when
     an update takes a lot longer than expected.
+* Updated GameSystemManager to set the current frame number as a "frame"
+    logging MDC so that certain logging implementations can include it as
+    part of the log message format.
+* Added a SystemTiming class that can optionally be given to GameSystemManager
+    to track per-system timings and dump the information as a warning when
+    a frame exceeds a certain threshold.
 
 
 Version 1.8.0 (latest)
