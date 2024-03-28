@@ -21,6 +21,7 @@ Version 1.9.0 (unreleased)
 * Added a SystemTiming class that can optionally be given to GameSystemManager
     to track per-system timings and dump the information as a warning when
     a frame exceeds a certain threshold.
+* Fixed an NPE when stopping an EntityContainer that did not fully start.
 
 
 Version 1.8.0 (latest)
