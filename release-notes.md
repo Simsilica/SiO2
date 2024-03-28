@@ -22,6 +22,8 @@ Version 1.9.0 (unreleased)
     to track per-system timings and dump the information as a warning when
     a frame exceeds a certain threshold.
 * Fixed an NPE when stopping an EntityContainer that did not fully start.
+* Modified GameSystemManager initalize() and start() methods to cleanup
+    partial init and partial startup+init on failure.
 
 
 Version 1.8.0 (latest)

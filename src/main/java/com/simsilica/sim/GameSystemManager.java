@@ -77,6 +77,12 @@ public class GameSystemManager {
     private final SimEvent simEvent = new SimEvent(this); // can reuse it
     private SystemTiming timing;
 
+    // Keep track of the systems that were actually initialized
+    // and actually started so that we can clean them up on stop() and
+    // terminate() even if full startup failed.
+    private final List<GameSystem> initialized = new ArrayList<>();
+    private final List<GameSystem> started = new ArrayList<>();
+
     public GameSystemManager() {
         register(TaskDispatcher.class, new TaskDispatcher());
         register(Blackboard.class, new Blackboard());
@@ -128,11 +134,19 @@ public class GameSystemManager {
                     log.trace("initializing:" + sys);
                 }
                 sys.initialize(this);
+                initialized.add(sys);
             }
             state = State.Initialized;
             EventBus.publish(SimEvent.simInitialized, simEvent);
         } catch( RuntimeException e ) {
             EventBus.publish(SimEvent.simFailed, simEvent);
+
+            // Cleanup what we can
+            if( !initialized.isEmpty() ) {
+                log.warn("Terminating " + initialized.size() + " initialized systems from partial initialization.");
+                terminateSystems();
+            }
+
             // Rethrow the exception
             throw e;
         }
@@ -167,12 +181,7 @@ public class GameSystemManager {
         }
         state = State.Terminating;
         EventBus.publish(SimEvent.simTerminating, simEvent);
-        for( GameSystem sys : getArray() ) {
-            if( log.isTraceEnabled() ) {
-                log.trace("terminating:" + sys);
-            }
-            sys.terminate(this);
-        }
+        terminateSystems();
         state = State.Terminated;
         EventBus.publish(SimEvent.simTerminated, simEvent);
     }
@@ -197,11 +206,26 @@ public class GameSystemManager {
                     log.trace("starting:" + sys);
                 }
                 sys.start();
+                started.add(sys);
             }
             state = State.Started;
             EventBus.publish(SimEvent.simStarted, simEvent);
         } catch( RuntimeException e ) {
+            log.error("Error starting systems", e);
             EventBus.publish(SimEvent.simFailed, simEvent);
+            EventBus.publish(ErrorEvent.fatalError, new ErrorEvent(e));
+
+            // Cleanup what we can
+            if( !started.isEmpty() ) {
+                log.warn("Stopping " + started.size() + " started systems from partial startup.");
+                stopSystems();
+            }
+
+            if( !initialized.isEmpty() ) {
+                log.warn("Terminating " + initialized.size() + " initialized systems from partial startup.");
+                terminateSystems();
+            }
+
             // Rethrow the exception
             throw e;
         }
@@ -214,14 +238,27 @@ public class GameSystemManager {
         }
         state = State.Stopping;
         EventBus.publish(SimEvent.simStopping, simEvent);
-        for( GameSystem sys : getArray() ) {
+        stopSystems();
+        state = State.Stopped;
+        EventBus.publish(SimEvent.simStopped, simEvent);
+    }
+
+    protected void terminateSystems() {
+        for( GameSystem sys : initialized ) {
+            if( log.isTraceEnabled() ) {
+                log.trace("terminating:" + sys);
+            }
+            sys.terminate(this);
+        }
+    }
+
+    protected void stopSystems() {
+        for( GameSystem sys : started ) {
             if( log.isTraceEnabled() ) {
                 log.trace("stopping:" + sys);
             }
             sys.stop();
         }
-        state = State.Stopped;
-        EventBus.publish(SimEvent.simStopped, simEvent);
     }
 
     protected void attachSystem( GameSystem system ) {
