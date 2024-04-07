@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO" name="MyApp" packages="">
+  <Appenders>
+    <Console name="STDOUT" target="SYSTEM_OUT" ignoreExceptions="false">
+      <!--<PatternLayout pattern="%d{ABSOLUTE} %X{frame} %-5p [%c{1}] %m%n"/>-->
+      <PatternLayout pattern="%X{frame} %-5p [%c{1}] %m%n"/>
+    </Console>
+  </Appenders>
+
+  <Loggers>
+
+    <!-- <Logger name="com.simsilica.es" level="TRACE"/> -->
+
+    <Root level="INFO">
+      <AppenderRef ref="STDOUT"/>
+    </Root>
+  </Loggers>
+</Configuration>
+
+
+

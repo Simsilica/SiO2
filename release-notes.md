@@ -24,6 +24,8 @@ Version 1.9.0 (unreleased)
 * Fixed an NPE when stopping an EntityContainer that did not fully start.
 * Modified GameSystemManager initalize() and start() methods to cleanup
     partial init and partial startup+init on failure.
+* Modified EntityContainer's element type detection to better handle
+    parameterized extensions of EntityContainer. (Complete with unit tests.)
 
 
 Version 1.8.0 (latest)

@@ -39,6 +39,7 @@ package com.simsilica.es;
 import java.lang.reflect.Array;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -91,25 +92,69 @@ public abstract class EntityContainer<T> {
         this.ed = ed;
         this.filter = filter;
         this.componentTypes = componentTypes;
+        this.parameter = findParameterType(getClass(), new HashMap<>());
+        if( parameter == null ) {
+            parameter = Object.class;
+            log.warn("Element parameter type not found for:" + getClass() + "  Using Object.class.");
+        }
+    }
 
-        // Find out what the type parameter is
-        for( Type t = getClass().getGenericSuperclass(); t != null; ) {
+    @SuppressWarnings("unchecked")
+    private static Class findParameterType( Class c, Map<String, Type> parameterMap ) {
+        if( log.isTraceEnabled() ) {
+            log.trace("findParameterType(" + c + ") parameters:" + Arrays.asList(c.getTypeParameters()));
+        }
+        for( Type t = c; t != null; ) {
+            if( log.isTraceEnabled() ) {
+                log.trace("  checking:" + t);
+            }
             if( t instanceof ParameterizedType ) {
                 ParameterizedType pt = (ParameterizedType)t;
+                Class rawType = (Class)pt.getRawType();
+                Type[] types = pt.getActualTypeArguments();
+                TypeVariable<Class>[] vars = rawType.getTypeParameters();
+                for( int i = 0; i < types.length; i++ ) {
+                    if( log.isTraceEnabled() ) {
+                        log.trace("    " + vars[i] + " = " + types[i] + "  class:" + types[i].getClass());
+                    }
+                    if( types[i] instanceof Class ) {
+                        parameterMap.put(vars[i].getName(), types[i]);
+                    }
+                }
                 if( pt.getRawType() == EntityContainer.class ) {
                     if( pt.getActualTypeArguments()[0] instanceof ParameterizedType ) {
-                        parameter = (Class)((ParameterizedType)pt.getActualTypeArguments()[0]).getRawType();
+                        return (Class)((ParameterizedType)pt.getActualTypeArguments()[0]).getRawType();
                     } else {
-                        parameter = (Class)pt.getActualTypeArguments()[0];
+                        Type arg = pt.getActualTypeArguments()[0];
+                        if( arg instanceof Class ) {
+                            return (Class)arg;
+                        }
+                        if( arg instanceof TypeVariable ) {
+                            Type result = parameterMap.get(((TypeVariable)arg).getName());
+                            if( result != null ) {
+                                return (Class)result;
+                            }
+                        }
+                        // We don't know what to do with it
+                        log.warn("Unhandled arg type:" + arg);
                     }
-                    break;
                 }
-            } else if( t instanceof Class ) {
+            }
+            // Else see if there is another generic superclass (probably not)
+            if( t instanceof Class ) {
+                if( log.isTraceEnabled() ) {
+                    log.trace("    class type parameters:" + Arrays.asList(((Class)t).getTypeParameters()));
+                }
                 t = ((Class)t).getGenericSuperclass();
             } else {
                 t = null;
             }
         }
+        Class superClass = c.getSuperclass();
+        if( superClass != null && superClass != Object.class ) {
+            return findParameterType(superClass, parameterMap);
+        }
+        return null;
     }
 
     protected void setFilter( ComponentFilter filter ) {
