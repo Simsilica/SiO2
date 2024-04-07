@@ -6,7 +6,7 @@ plugins {
     id 'sio2.published-library'
 }
 
-version='1.8.1-SNAPSHOT'
+version='1.9.0-SNAPSHOT'
 group='com.simsilica'
 
 ext.jmeVersion = "3.3.0-stable"
@@ -30,14 +30,24 @@ dependencies {
 
     api "com.simsilica:sim-math:1.5.0"
 
-    api "com.simsilica:zay-es:1.4.0"
-    api "com.simsilica:zay-es-net:1.5.0"
+    api "com.simsilica:zay-es:1.6.0-SNAPSHOT"
+    api "com.simsilica:zay-es-net:1.6.0-SNAPSHOT"
 
     implementation "org.codehaus.groovy:groovy-all:$groovyVersion"
 
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
     implementation "org.apache.logging.log4j:log4j-api:$log4jVersion"
     implementation "org.apache.logging.log4j:log4j-core:$log4jVersion"
+
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.codehaus.groovy:groovy-all:2.4.11'
+    testRuntimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion"
 }
 
-
+test {
+    testLogging {
+        // Useful when developing tests to be able to turn these on/off
+        //outputs.upToDateWhen {false}
+        //showStandardStreams = true
+    }
+}
