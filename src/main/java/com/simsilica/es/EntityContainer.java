@@ -187,6 +187,10 @@ public abstract class EntityContainer<T> {
         return objects.get(id);
     }
 
+    protected Class<? extends EntityComponent>[] getComponentTypes() {
+        return componentTypes;
+    }
+
     @SuppressWarnings("unchecked")
     protected T[] getArray() {
         if( array != null ) {

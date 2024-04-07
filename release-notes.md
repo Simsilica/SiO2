@@ -26,6 +26,8 @@ Version 1.9.0 (unreleased)
     partial init and partial startup+init on failure.
 * Modified EntityContainer's element type detection to better handle
     parameterized extensions of EntityContainer. (Complete with unit tests.)
+* Added an EntityContainer.getComponentTypes() protected method so that subclasses
+    can query the component types.
 
 
 Version 1.8.0 (latest)
