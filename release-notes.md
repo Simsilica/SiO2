@@ -28,6 +28,7 @@ Version 1.9.0 (unreleased)
     parameterized extensions of EntityContainer. (Complete with unit tests.)
 * Added an EntityContainer.getComponentTypes() protected method so that subclasses
     can query the component types.
+* Increased base guava version to 21 to get java.util.function compatibility.
 
 
 Version 1.8.0 (latest)

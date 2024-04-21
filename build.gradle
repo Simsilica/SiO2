@@ -12,7 +12,7 @@ group='com.simsilica'
 ext.jmeVersion = "3.3.0-stable"
 ext.log4jVersion = '2.15.0'
 ext.slf4jVersion = '1.7.32'
-ext.guavaVersion = '19.0'
+ext.guavaVersion = '21.0'
 ext.groovyVersion = '2.4.5'
 
 // Set this module's maven pom description
