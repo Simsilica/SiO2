@@ -83,7 +83,7 @@ public class WorkerPool {
     private AtomicInteger activeCount = new AtomicInteger(0);
 
     private AtomicLong errorCount = new AtomicLong(0);
-    
+
     private boolean shuttingDown = false;
 
     /**
@@ -269,6 +269,9 @@ public class WorkerPool {
             }
             try {
                 double work = job.job.runOnUpdate();
+                if( log.isTraceEnabled() ) {
+                    log.trace("job:" + job.job + "  work:" + work + "  totalWork:" + totalWork + "  maxWork:" + maxWork);
+                }
                 totalWork += work;
                 if( maxWork >= 0 && totalWork >= maxWork ) {
                     // Any stragglers will be caught on the next pass
