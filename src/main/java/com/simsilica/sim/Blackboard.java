@@ -141,6 +141,9 @@ public class Blackboard {
         synchronized( this ) {
             try {
                 Object newValue = initialValue.call();
+                if( log.isTraceEnabled() ) {
+                    log.trace("putIfAbsent(" + key + ", " + newValue + ")");
+                }
                 existing = index.putIfAbsent(key, newValue);
                 if( existing == null ) {
                     return newValue;
@@ -151,7 +154,7 @@ public class Blackboard {
             }
         }
     }
-    
+
     public void set( String id, Object value ) {
         if( value == null ) {
             throw new IllegalArgumentException("Value cannot be null");
@@ -171,6 +174,9 @@ public class Blackboard {
     }
 
     protected void set( Key key, Object value ) {
+        if( log.isTraceEnabled() ) {
+            log.trace("set(" + key + ", " + value + ")");
+        }
         Object existing = index.get(key);
         if( existing != null && !Objects.equals(value, existing) ) {
             throw new IllegalArgumentException("There is already a value set for:" + key);
@@ -192,6 +198,9 @@ public class Blackboard {
     }
 
     protected void update( Key key, Object value ) {
+        if( log.isTraceEnabled() ) {
+            log.trace("update(" + key + ", " + value + ")");
+        }
         if( value == null ) {
             index.remove(key);
         } else {
@@ -220,12 +229,18 @@ public class Blackboard {
 
     @SuppressWarnings("unchecked")
     protected void watch( Key key, Consumer consumer ) {
+        if( log.isTraceEnabled() ) {
+            log.trace("watch(" + key + ", " + consumer + ")");
+        }
         // Add the listener that will notify the consumer about changes
         listeners.add(new ValueObserver(key, consumer));
-        
+
         // See if it's already set so we can notify the consumer right away
         // and save the caller some complexity
         Object existing = index.get(key);
+        if( log.isTraceEnabled() ) {
+            log.trace("existing:" + existing);
+        }
         if( existing != null ) {
             consumer.accept(existing);
         }
@@ -248,7 +263,7 @@ public class Blackboard {
             ValueObserver observer = (ValueObserver)l;
             if( observer.consumer == consumer && observer.filter.equals(key) ) {
                 listeners.remove(l);
-            } 
+            }
         }
     }
 
@@ -280,6 +295,9 @@ public class Blackboard {
     protected void onInitialize( Key key, Consumer consumer ) {
         // See if it's already set
         Object existing = index.get(key);
+        if( log.isTraceEnabled() ) {
+            log.trace("onInitialize(" + key + ", " + consumer + ") existing:" + existing);
+        }
         if( existing != null ) {
             consumer.accept(existing);
             return;
@@ -367,7 +385,7 @@ public class Blackboard {
             removeBlackboardListener(this);
         }
     }
-    
+
     protected class ValueObserver implements BlackboardListener {
         private Key filter;
         private Consumer consumer;

@@ -31,6 +31,7 @@ Version 1.9.0 (unreleased)
 * Increased base guava version to 21 to get java.util.function compatibility.
 * Updated MessageState to allow for a configurable max width that will be applied
     to created Labels. (so they autowrap at max width)
+* Added a bunch of trace logging to the Blackboard class.
 
 
 Version 1.8.0 (latest)
