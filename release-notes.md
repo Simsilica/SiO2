@@ -29,6 +29,8 @@ Version 1.9.0 (unreleased)
 * Added an EntityContainer.getComponentTypes() protected method so that subclasses
     can query the component types.
 * Increased base guava version to 21 to get java.util.function compatibility.
+* Updated MessageState to allow for a configurable max width that will be applied
+    to created Labels. (so they autowrap at max width)
 
 
 Version 1.8.0 (latest)
