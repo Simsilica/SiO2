@@ -248,7 +248,11 @@ public class GameSystemManager {
             if( log.isTraceEnabled() ) {
                 log.trace("terminating:" + sys);
             }
-            sys.terminate(this);
+            try {
+                sys.terminate(this);
+            } catch( Exception e ) {
+                onTerminateError(sys, e);
+            }
         }
     }
 
@@ -257,8 +261,20 @@ public class GameSystemManager {
             if( log.isTraceEnabled() ) {
                 log.trace("stopping:" + sys);
             }
-            sys.stop();
+            try {
+                sys.stop();
+            } catch( Exception e ) {
+                onStopError(sys, e);
+            }
         }
+    }
+
+    protected void onStopError( GameSystem sys, Throwable t ) {
+        log.error("Error stopping system:" + sys, t);
+    }
+
+    protected void onTerminateError( GameSystem sys, Throwable t ) {
+        log.error("Error terminating system:" + sys, t);
     }
 
     protected void attachSystem( GameSystem system ) {

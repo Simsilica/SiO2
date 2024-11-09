@@ -32,6 +32,12 @@ Version 1.9.0 (unreleased)
 * Updated MessageState to allow for a configurable max width that will be applied
     to created Labels. (so they autowrap at max width)
 * Added a bunch of trace logging to the Blackboard class.
+* Modified GameSystemManager stop() and terminate() to have exception handling so
+    that one bad system does not (necessarily) prevent the next ones from getting
+    stopped/terminated. This could lead to application hangs if later systems could
+    not properly shut down their threads.  Subclasses can override the onStopError()
+    or onTerminateError() methods to control the behavior, which by default logs
+    and moves on.
 
 
 Version 1.8.0 (latest)
