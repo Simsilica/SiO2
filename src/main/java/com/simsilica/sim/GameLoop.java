@@ -71,6 +71,9 @@ public class GameLoop {
      */
     private SimTime safeTime = new SimTime();
 
+    private Integer priority;
+    private int defaultPriority = loop.getPriority();
+
     public GameLoop( GameSystemManager systems ) {
         this(systems, FPS_60); // 60 FPS
     }
@@ -107,6 +110,19 @@ public class GameLoop {
             safeTime.setCurrentTime(lastStepTime.get());
         }
         return safeTime;
+    }
+
+    public void setPriority( Integer priority ) {
+        this.priority = priority;
+        if( priority == null ) {
+            loop.setPriority(defaultPriority);
+        } else {
+            loop.setPriority(priority);
+        }
+    }
+
+    public Integer getPriority() {
+        return priority;
     }
 
     /**

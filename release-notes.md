@@ -38,6 +38,7 @@ Version 1.9.0 (unreleased)
     not properly shut down their threads.  Subclasses can override the onStopError()
     or onTerminateError() methods to control the behavior, which by default logs
     and moves on.
+* Added GameLoop.setPriority() for adjusting the priority of the game loop thread.
 
 
 Version 1.8.0 (latest)
