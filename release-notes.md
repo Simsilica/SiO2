@@ -39,6 +39,10 @@ Version 1.9.0 (unreleased)
     or onTerminateError() methods to control the behavior, which by default logs
     and moves on.
 * Added GameLoop.setPriority() for adjusting the priority of the game loop thread.
+* Fixed an issue where registering the same system twice using different keys would
+    also cause it to be executed twice.
+* Added GameSystemManager.getSystems() for debugging code to be able to iterate
+    over the active systems.
 
 
 Version 1.8.0 (latest)

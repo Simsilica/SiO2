@@ -101,6 +101,14 @@ public class GameSystemManager {
     }
 
     /**
+     *  Returns a read-only list of all attached GameSystems in the order
+     *  that they are executed.  This is useful for debugging.
+     */
+    public List<GameSystem> getGameSystems() {
+        return Collections.unmodifiableList(systems);
+    }
+
+    /**
      *  Enqueues a task that will be run at the beginning of the next
      *  update() call on the update thread.  This delegates to the
      *  TaskDispatcher system registered to this GameSystemManager.
@@ -278,7 +286,11 @@ public class GameSystemManager {
     }
 
     protected void attachSystem( GameSystem system ) {
-        systems.add(system);
+        if( systems.indexOf(system) < 0 ) {
+            systems.add(system);
+        } else {
+            log.warn("Not readding system:" + system);
+        }
         systemArray = null;
         if( isInitialized() || state == State.Initializing ) {
             if( log.isTraceEnabled() ) {
