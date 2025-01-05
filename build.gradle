@@ -13,7 +13,8 @@ ext.jmeVersion = "3.3.0-stable"
 ext.log4jVersion = '2.15.0'
 ext.slf4jVersion = '1.7.32'
 ext.guavaVersion = '21.0'
-ext.groovyVersion = '2.4.5'
+//ext.groovyVersion = '2.4.5'
+ext.groovyVersion = '2.4.11'  // 2.4.21 is the latest 2.4.x
 
 // Set this module's maven pom description
 publishing.publications.library(MavenPublication).pom {
@@ -30,8 +31,8 @@ dependencies {
 
     api "com.simsilica:sim-math:1.5.0"
 
-    api "com.simsilica:zay-es:1.6.0-SNAPSHOT"
-    api "com.simsilica:zay-es-net:1.6.0-SNAPSHOT"
+    api "com.simsilica:zay-es:1.7.0-SNAPSHOT"
+    api "com.simsilica:zay-es-net:1.7.0-SNAPSHOT"
 
     implementation "org.codehaus.groovy:groovy-all:$groovyVersion"
 

@@ -73,8 +73,7 @@ public abstract class EntityContainer<T> {
     static Logger log = LoggerFactory.getLogger(EntityContainer.class);
 
     private EntityData ed;
-    private ComponentFilter filter;
-    private Class<? extends EntityComponent>[] componentTypes;
+    private EntityCriteria criteria;
     private EntitySet entities;
     private T[] array;
     private Map<EntityId, T> objects = new HashMap<>();
@@ -89,9 +88,12 @@ public abstract class EntityContainer<T> {
     @SuppressWarnings("unchecked")
     @SafeVarargs
     protected EntityContainer( EntityData ed, ComponentFilter filter, Class<? extends EntityComponent>... componentTypes ) {
+        this(ed, new EntityCriteria().set(filter, componentTypes));
+    }
+
+    protected EntityContainer( EntityData ed, EntityCriteria criteria ) {
         this.ed = ed;
-        this.filter = filter;
-        this.componentTypes = componentTypes;
+        this.criteria = criteria;
         this.parameter = findParameterType(getClass(), new HashMap<>());
         if( parameter == null ) {
             parameter = Object.class;
@@ -157,13 +159,40 @@ public abstract class EntityContainer<T> {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     protected void setFilter( ComponentFilter filter ) {
-        if( this.filter == filter ) {
+
+        // To match the original contract of this method, we need to completely
+        // clear any existing filters and set the new one... but only if it
+        // wasn't already set.  First check is easy but not straight-forward
+        int count = 0;
+        boolean found = false;
+        for( ComponentFilter f : criteria.getFilters() ) {
+            if( f == null ) {
+                continue;
+            }
+            if( filter == f ) {
+                found = true;
+            }
+            count++;
+        }
+        if( count == 1 && found ) {
             return;
         }
-        this.filter = filter;
+
+        criteria.clearFilters();
+        criteria.setFilter(filter.getComponentType(), filter);
         if( entities != null ) {
-            entities.resetFilter(filter);
+            entities.resetEntityCriteria(criteria);
+        }
+    }
+
+    protected void setCriteria( EntityCriteria criteria ) {
+        // Good chance that if we were passed in our same criteria that we would
+        // still need to reset.
+        this.criteria = criteria;
+        if( entities != null ) {
+            entities.resetEntityCriteria(criteria);
         }
     }
 
@@ -173,10 +202,7 @@ public abstract class EntityContainer<T> {
 
     @SuppressWarnings("unchecked")
     protected void addComponentTypes( Class<? extends EntityComponent>... add ) {
-        Class[] merged = new Class[add.length + componentTypes.length];
-        System.arraycopy(componentTypes, 0, merged, 0, componentTypes.length);
-        System.arraycopy(add, 0, merged, componentTypes.length, add.length);
-        this.componentTypes = merged;
+        criteria.add(add);
     }
 
     public int size() {
@@ -187,8 +213,15 @@ public abstract class EntityContainer<T> {
         return objects.get(id);
     }
 
-    protected Class<? extends EntityComponent>[] getComponentTypes() {
-        return componentTypes;
+    // BREAKING-CHANGE: raw component types array is no longer available and
+    // would have to be recreated every time.  This probably negates any
+    // callers benefits of using the direct-array version... but any
+    // for-each style loop will still work with this change.
+    //protected Class<? extends EntityComponent>[] getComponentTypes() {
+    //    return componentTypes;
+    //}
+    protected Set<Class<? extends EntityComponent>> getComponentTypes() {
+        return criteria.getComponentTypes();
     }
 
     @SuppressWarnings("unchecked")
@@ -248,7 +281,7 @@ public abstract class EntityContainer<T> {
     }
 
     public void start() {
-        this.entities = ed.getEntities(filter, componentTypes);
+        this.entities = ed.getEntities(criteria);
         entities.applyChanges();
         addObjects(entities);
     }
@@ -279,6 +312,6 @@ public abstract class EntityContainer<T> {
 
     @Override
     public String toString() {
-        return getClass().getName() + "[components=" + Arrays.asList(componentTypes) + "]";
+        return getClass().getName() + "[components=" + criteria.getComponentTypes() + "]";
     }
 }

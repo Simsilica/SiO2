@@ -43,6 +43,9 @@ Version 1.9.0 (unreleased)
     also cause it to be executed twice.
 * Added GameSystemManager.getSystems() for debugging code to be able to iterate
     over the active systems.
+* Upped the Zay-es versions to 1.7.0-SNAPSHOT
+* Updated EntityContainer to work with EntityCriteria objects.
+    Possible breaking change: EntityContainer.getComponentTypes() return type has changed.
 
 
 Version 1.8.0 (latest)
