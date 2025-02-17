@@ -37,6 +37,7 @@
 package com.simsilica.state;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
@@ -44,9 +45,10 @@ import com.jme3.app.state.BaseAppState;
 import com.jme3.input.KeyInput;
 import com.jme3.math.*;
 import com.jme3.scene.*;
-import com.jme3.util.SafeArrayList;
 
 import com.simsilica.lemur.*;
+import com.simsilica.lemur.core.VersionedHolder;
+import com.simsilica.lemur.core.VersionedReference;
 import com.simsilica.lemur.component.SpringGridLayout;
 import com.simsilica.lemur.component.TextEntryComponent;
 import com.simsilica.lemur.event.KeyAction;
@@ -80,6 +82,8 @@ public class CommandConsoleState extends BaseAppState {
 
     private boolean alwaysOpen = false;
 
+    private VersionedHolder<Boolean> enabled = new VersionedHolder<>(false);
+
     public CommandConsoleState() {
         setEnabled(false);
     }
@@ -108,6 +112,10 @@ public class CommandConsoleState extends BaseAppState {
         return alwaysOpen;
     }
 
+    public VersionedReference<Boolean> createEnabledReference() {
+        return enabled.createReference();
+    }
+
     @Override
     protected void initialize( Application app ) {
 
@@ -133,6 +141,7 @@ public class CommandConsoleState extends BaseAppState {
 
     @Override
     protected void onEnable() {
+        enabled.updateObject(true);
         Node gui = ((SimpleApplication)getApplication()).getGuiNode();
         gui.attachChild(entryPanel);
 
@@ -157,6 +166,7 @@ public class CommandConsoleState extends BaseAppState {
 
     @Override
     protected void onDisable() {
+        enabled.updateObject(false);
         GuiGlobals.getInstance().requestFocus(null);
         entryPanel.removeFromParent();
         getState(MessageState.class).setMessageRootOffset(new Vector3f(0, 0, 0));

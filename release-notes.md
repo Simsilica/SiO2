@@ -46,6 +46,9 @@ Version 1.9.0 (unreleased)
 * Upped the Zay-es versions to 1.7.0-SNAPSHOT
 * Updated EntityContainer to work with EntityCriteria objects.
     Possible breaking change: EntityContainer.getComponentTypes() return type has changed.
+* Modified CommandConsoleState to be able to provide a VersionedReference for its enabled
+    state.
+* Modified MessageState to support scroll back and different font scale.
 
 
 Version 1.8.0 (latest)

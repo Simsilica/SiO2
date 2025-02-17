@@ -77,7 +77,68 @@ public class MessageState extends BaseAppState {
 
     private Supplier<Float> maxWidth;
 
+    private float fontScale = 1;
+
+    private int historySize = 0;
+    private int scroll = 0;
+
+    // Keep track of the number of lines in history that will fit on the top-most
+    // page so we know how far the scroll can go.
+    private int lastPageCount = 0;
+
     public MessageState() {
+    }
+
+    public void setFontScale( Float fontScale ) {
+        if( Objects.equals(this.fontScale, fontScale) ) {
+            return;
+        }
+        this.fontScale = fontScale;
+        resetFontScale();
+    }
+
+    public float getFontScale() {
+        return fontScale;
+    }
+
+    public void setHistorySize( int historySize ) {
+        if( this.historySize == historySize ) {
+            return;
+        }
+        this.historySize = historySize;
+        refreshLayout();
+    }
+
+    public int getHistorySize() {
+        return historySize;
+    }
+
+    /**
+     *  Sets how far back to scroll through history in 'number of messages'.
+     */
+    public void setScroll( int scroll ) {
+        if( historySize > 0 ) {
+            scroll = Math.min(scroll, getMaxScroll());
+        }
+        scroll = Math.max(0, scroll);
+        if( this.scroll == scroll ) {
+            return;
+        }
+        this.scroll = scroll;
+        refreshLayout();
+    }
+
+    public int getScroll() {
+        return scroll;
+    }
+
+    public int getMaxScroll() {
+        if( historySize > 0 ) {
+            // Add 1 to allow for at least one blank line to help show that
+            // the scrolling is 'done'.
+            return Math.max(0, Math.min(historySize, messages.size()) - lastPageCount) + 1;
+        }
+        return 0;
     }
 
     public void setFadeTime( float seconds ) {
@@ -233,26 +294,61 @@ public class MessageState extends BaseAppState {
         messageRoot.move(offset);
     }
 
+    protected void resetFontScale() {
+        for( Message m : messages.getArray() ) {
+            m.resetFontScale();
+        }
+        refreshLayout();
+    }
+
     protected void refreshLayout() {
         int height = getApplication().getCamera().getHeight();
         int width = getApplication().getCamera().getWidth();
 
         float y = 0;
-        for( Message m : messages.getArray() ) {
+        Message[] array = messages.getArray();
+        for( int i = 0; i < array.length; i++ ) {
+            Message m = array[i];
+            if( i < scroll ) {
+                // Off the bottom of the screen so remove it
+                m.label.removeFromParent();
+                continue;
+            }
             Vector3f pref = m.label.getPreferredSize();
             y += pref.y;
             m.label.setLocalTranslation(0, y, 0);
             if( y > height ) {
-                // Off the screen so remove it
+                // Off the top of screen so remove it
                 m.label.removeFromParent();
-                messages.remove(m);
+                if( i > historySize ) {
+                    // Older than our history allows so remove it forever.
+                    messages.remove(m);
+                }
+            } else if( m.label.getParent() == null ) {
+                messageRoot.attachChild(m.label);
+            }
+        }
+
+        if( historySize > 0 ) {
+            // Calculate how many of the last lines will fit on screen
+            float ySize = 0;
+            lastPageCount = 0;
+            for( int i = Math.min(historySize, array.length) - 1; i >= 0; i-- ) {
+                Message m = array[i];
+                Vector3f pref = m.label.getPreferredSize();
+                ySize += pref.y;
+                if( ySize > height ) {
+                    break;
+                }
+                lastPageCount++;
             }
         }
     }
 
-    private class Message {
+    protected class Message {
         private float alpha;
         private Panel label;
+        private float fontSize;
 
         public Message( Panel label ) {
             this(label, 1);
@@ -261,6 +357,18 @@ public class MessageState extends BaseAppState {
         public Message( Panel label, float initialAlpha ) {
             this.alpha = initialAlpha;
             this.label = label;
+            if( label instanceof Label ) {
+                this.fontSize = ((Label)label).getFontSize();
+                resetFontScale();
+            }
+        }
+
+        protected void resetFontScale() {
+            if( !(label instanceof Label) ) {
+                return;
+            }
+            Label l = (Label)label;
+            l.setFontSize(fontScale * fontSize);
         }
 
         public void update( float tpf ) {
@@ -268,7 +376,11 @@ public class MessageState extends BaseAppState {
             if( alpha < 0 ) {
                 alpha = 0;
             }
-            label.setAlpha(Math.max(alpha, alphaOverride));
+            // Make them fade slower at first and fade faster towards the end
+            float effectiveAlpha = 1 - alpha;
+            effectiveAlpha *= effectiveAlpha;
+            effectiveAlpha = 1 - effectiveAlpha;
+            label.setAlpha(Math.max(effectiveAlpha, alphaOverride));
         }
     }
 }
