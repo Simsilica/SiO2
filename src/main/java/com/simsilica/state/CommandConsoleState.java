@@ -39,6 +39,8 @@ package com.simsilica.state;
 import java.util.*;
 import java.util.function.Consumer;
 
+import org.slf4j.*;
+
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
@@ -68,6 +70,8 @@ import com.simsilica.lemur.style.ElementId;
  */
 public class CommandConsoleState extends BaseAppState {
 
+    private static final Logger log = LoggerFactory.getLogger(CommandConsoleState.class);
+
     public static final FunctionId F_OPEN_CONSOLE = new FunctionId("Open Console");
 
     public static final ElementId CONTAINER_ID = new ElementId("console.container");
@@ -77,6 +81,7 @@ public class CommandConsoleState extends BaseAppState {
     private Container entryPanel;
     private Label prompt;
     private TextField entry;
+    private Map<KeyAction, KeyActionListener> actionMap = new HashMap<>();
 
     private CommandEntry shell = new DefaultCommandEntry();
 
@@ -86,6 +91,10 @@ public class CommandConsoleState extends BaseAppState {
 
     public CommandConsoleState() {
         setEnabled(false);
+
+        // Configure the default actions for return/enter and escape.
+        actionMap.put(new KeyAction(KeyInput.KEY_RETURN), new NewLine());
+        actionMap.put(new KeyAction(KeyInput.KEY_ESCAPE), new Escape());
     }
 
     public void setCommandEntry( CommandEntry commandEntry ) {
@@ -116,6 +125,10 @@ public class CommandConsoleState extends BaseAppState {
         return enabled.createReference();
     }
 
+    public Map<KeyAction,KeyActionListener> getActionMap() {
+        return actionMap;
+    }
+
     @Override
     protected void initialize( Application app ) {
 
@@ -124,9 +137,10 @@ public class CommandConsoleState extends BaseAppState {
         prompt = entryPanel.addChild(new Label(">", PROMPT_LABEL_ID));
         entry = entryPanel.addChild(new TextField("", TEXT_ENTRY_ID));
 
-        // Register to catch the return key from the ext component.
-        entry.getActionMap().put(new KeyAction(KeyInput.KEY_RETURN), new NewLine());
-        entry.getActionMap().put(new KeyAction(KeyInput.KEY_ESCAPE), new Escape());
+        // Configure the text field with an actions from before it was created and
+        // then swap our map out so callers can configure new actions if desired.
+        entry.getActionMap().putAll(actionMap);
+        actionMap = entry.getActionMap();
 
         // Register to any console open input that might be defined
         InputMapper input = GuiGlobals.getInstance().getInputMapper();
@@ -173,30 +187,35 @@ public class CommandConsoleState extends BaseAppState {
         getState(MessageState.class).setAlphaOverride(0);
     }
 
-    private class NewLine implements KeyActionListener {
-        @Override
-        public void keyAction( TextEntryComponent source, KeyAction key ) {
-
-            // For now just clear the text and send it to the console
-            String text = entry.getText();
-            entry.setText("");
-            //getState(MessageState.class).addMessage(text, ColorRGBA.White);
-            if( !shell.runCommand(text) ) {
-                setEnabled(alwaysOpen);
-            }
-        }
-    }
-
-    private class Escape implements KeyActionListener {
-        @Override
-        public void keyAction( TextEntryComponent source, KeyAction key ) {
-            entry.setText("");
+    protected void enter() {
+        // Clear the text and send it to the configured shell
+        String text = entry.getText();
+        entry.setText("");
+        if( !shell.runCommand(text) ) {
             setEnabled(alwaysOpen);
         }
     }
 
-    private class DefaultCommandEntry implements CommandEntry {
+    protected void escape() {
+        entry.setText("");
+        setEnabled(alwaysOpen);
+    }
 
+    protected class NewLine implements KeyActionListener {
+        @Override
+        public void keyAction( TextEntryComponent source, KeyAction key ) {
+            enter();
+        }
+    }
+
+    protected class Escape implements KeyActionListener {
+        @Override
+        public void keyAction( TextEntryComponent source, KeyAction key ) {
+            escape();
+        }
+    }
+
+    protected class DefaultCommandEntry implements CommandEntry {
         @Override
         public boolean runCommand( String cmd ) {
             getState(MessageState.class).addMessage(cmd, ColorRGBA.White);

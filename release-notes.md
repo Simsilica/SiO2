@@ -51,6 +51,8 @@ Version 1.9.0 (unreleased)
 * Modified MessageState to support scroll back and different font scale.
 * Modified MessageState to use a parabolic curve for alpha fade so it fades slower near
     the beginning and faster towards 0.
+* Modified CommandConsoleState to be more extensible with configurable action map and
+    protected methods for enter(), escape().
 
 
 Version 1.8.0 (latest)
