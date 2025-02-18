@@ -50,6 +50,7 @@ import com.jme3.scene.*;
 import com.jme3.util.SafeArrayList;
 
 import com.simsilica.lemur.*;
+import com.simsilica.lemur.core.VersionedReference;
 import com.simsilica.lemur.style.ElementId;
 
 /**
@@ -80,11 +81,9 @@ public class MessageState extends BaseAppState {
     private float fontScale = 1;
 
     private int historySize = 0;
-    private int scroll = 0;
 
-    // Keep track of the number of lines in history that will fit on the top-most
-    // page so we know how far the scroll can go.
-    private int lastPageCount = 0;
+    private RangedValueModel scroll = new DefaultRangedValueModel(0, 0, 0);
+    private VersionedReference<Double> scrollRef = scroll.createReference();
 
     public MessageState() {
     }
@@ -117,28 +116,19 @@ public class MessageState extends BaseAppState {
      *  Sets how far back to scroll through history in 'number of messages'.
      */
     public void setScroll( int scroll ) {
-        if( historySize > 0 ) {
-            scroll = Math.min(scroll, getMaxScroll());
-        }
-        scroll = Math.max(0, scroll);
-        if( this.scroll == scroll ) {
-            return;
-        }
-        this.scroll = scroll;
-        refreshLayout();
+        this.scroll.setValue(scroll);
     }
 
     public int getScroll() {
-        return scroll;
+        return (int)scroll.getValue();
     }
 
     public int getMaxScroll() {
-        if( historySize > 0 ) {
-            // Add 1 to allow for at least one blank line to help show that
-            // the scrolling is 'done'.
-            return Math.max(0, Math.min(historySize, messages.size()) - lastPageCount) + 1;
-        }
-        return 0;
+        return (int)scroll.getMaximum();
+    }
+
+    public RangedValueModel getScrollModel() {
+        return scroll;
     }
 
     public void setFadeTime( float seconds ) {
@@ -272,6 +262,10 @@ public class MessageState extends BaseAppState {
         for( Message m : messages.getArray() ) {
             m.update(tpf);
         }
+
+        if( scrollRef.update() ) {
+            refreshLayout();
+        }
     }
 
     @Override
@@ -309,7 +303,7 @@ public class MessageState extends BaseAppState {
         Message[] array = messages.getArray();
         for( int i = 0; i < array.length; i++ ) {
             Message m = array[i];
-            if( i < scroll ) {
+            if( i < scroll.getValue() ) {
                 // Off the bottom of the screen so remove it
                 m.label.removeFromParent();
                 continue;
@@ -329,11 +323,18 @@ public class MessageState extends BaseAppState {
             }
         }
 
+        scroll.setMaximum(calculateMaxScroll());
+    }
+
+    protected int calculateMaxScroll() {
         if( historySize > 0 ) {
             // Calculate how many of the last lines will fit on screen
+            float height = getApplication().getCamera().getHeight() - offset.y;
             float ySize = 0;
-            lastPageCount = 0;
-            for( int i = Math.min(historySize, array.length) - 1; i >= 0; i-- ) {
+            int lastPageCount = 0;
+            Message[] array = messages.getArray();
+            int maxIndex = Math.min(historySize, array.length) - 1;
+            for( int i = maxIndex; i >= 0; i-- ) {
                 Message m = array[i];
                 Vector3f pref = m.label.getPreferredSize();
                 ySize += pref.y;
@@ -342,7 +343,18 @@ public class MessageState extends BaseAppState {
                 }
                 lastPageCount++;
             }
+
+            if( array.length >= lastPageCount ) {
+                // Subtract 1 to allow for at least one blank line to help show that
+                // the scrolling is 'done'.
+                if( lastPageCount > 0 ) {
+                    lastPageCount--;
+                }
+            }
+
+            return Math.max(0, maxIndex - lastPageCount);
         }
+        return 0;
     }
 
     protected class Message {
