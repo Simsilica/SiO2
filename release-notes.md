@@ -53,6 +53,10 @@ Version 1.9.0 (unreleased)
     the beginning and faster towards 0.
 * Modified CommandConsoleState to be more extensible with configurable action map and
     protected methods for enter(), escape().
+* Added a ChatMessage class to encapsulate chat message information which will eventually
+    be used to refactor the ChatSessionListener.
+* Modified ChatClientService to keep a limited backlog of received messages while no chat listeners
+    are active.  The client caller can then decide to play these back as needed.
 
 
 Version 1.8.0 (latest)
