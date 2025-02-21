@@ -1,41 +1,42 @@
 /*
  * $Id$
- * 
+ *
  * Copyright (c) 2016, Simsilica, LLC
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions 
+ * modification, are permitted provided that the following conditions
  * are met:
- * 
- * 1. Redistributions of source code must retain the above copyright 
+ *
+ * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
- * 
- * 2. Redistributions in binary form must reproduce the above copyright 
- *    notice, this list of conditions and the following disclaimer in 
- *    the documentation and/or other materials provided with the 
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
  *    distribution.
- * 
- * 3. Neither the name of the copyright holder nor the names of its 
- *    contributors may be used to endorse or promote products derived 
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 package com.simsilica.net.client;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -46,6 +47,7 @@ import com.jme3.network.service.AbstractClientService;
 import com.jme3.network.service.ClientServiceManager;
 import com.jme3.network.service.rmi.RmiClientService;
 
+import com.simsilica.net.ChatMessage;
 import com.simsilica.net.ChatSession;
 import com.simsilica.net.ChatSessionListener;
 
@@ -56,34 +58,52 @@ import com.simsilica.net.ChatSessionListener;
  *
  *  @author    Paul Speed
  */
-public class ChatClientService extends AbstractClientService 
+public class ChatClientService extends AbstractClientService
                                   implements ChatSession {
 
     static Logger log = LoggerFactory.getLogger(ChatClientService.class);
-    
+
+    public static final int DEFAULT_BACKLOG_SIZE = 10;
+
     private RmiClientService rmiService;
     private int channel;
     private ChatSession delegate;
-    
+
     private String playerName;
 
     private ChatSessionCallback sessionCallback = new ChatSessionCallback();
-    private List<ChatSessionListener> listeners = new CopyOnWriteArrayList<>();  
- 
+    private List<ChatSessionListener> listeners = new CopyOnWriteArrayList<>();
+
+    // Before any listener are added, capture the messages so the client
+    // can decide what to do with them when the first listener is added.
+    private LinkedList<ChatMessage> backlog = new LinkedList<>();
+    private int maxBacklogSize;
+
     /**
      *  Creates a new chat service that will use the default reliable
      *  channel for communication.
-     */   
+     */
     public ChatClientService() {
         this(MessageConnection.CHANNEL_DEFAULT_RELIABLE);
     }
- 
+
     /**
      *  Creates a new chat service that will use the specified channel
      *  for any reliable communication.
-     */   
+     */
     public ChatClientService( int channel ) {
+        this(channel, DEFAULT_BACKLOG_SIZE);
+    }
+
+    /**
+     *  Creates a new chat service that will use the specified channel
+     *  for any reliable communication and have the specified backlog size.
+     *  The backlog is used to capture chat messages before any listener
+     *  is added.  Only the maxBacklogSize most recent messages will be kept.
+     */
+    public ChatClientService( int channel, int maxBacklogSize ) {
         this.channel = channel;
+        this.maxBacklogSize = maxBacklogSize;
     }
 
     @Override
@@ -94,8 +114,20 @@ public class ChatClientService extends AbstractClientService
     @Override
     public List<String> getPlayerNames() {
         return getDelegate().getPlayerNames();
-    }        
-        
+    }
+
+    public int getMaxBacklogSize() {
+        return maxBacklogSize;
+    }
+
+    /**
+     *  Returns the list of messages that were recieved while there are no ChatSessionListeners
+     *  registered.
+     */
+    public List<ChatMessage> getBacklog() {
+        return backlog;
+    }
+
     /**
      *  Adds a listener that will be notified about account-related events.
      *  Note that these listeners are called on the networking thread and
@@ -104,11 +136,11 @@ public class ChatClientService extends AbstractClientService
     public void addChatSessionListener( ChatSessionListener l ) {
         listeners.add(l);
     }
-    
+
     public void removeChatSessionListener( ChatSessionListener l ) {
         listeners.remove(l);
     }
- 
+
     @Override
     protected void onInitialize( ClientServiceManager s ) {
         log.debug("onInitialize(" + s + ")");
@@ -116,20 +148,20 @@ public class ChatClientService extends AbstractClientService
         if( rmiService == null ) {
             throw new RuntimeException("ChatClientService requires RMI service");
         }
-        log.debug("Sharing session callback.");  
+        log.debug("Sharing session callback.");
         rmiService.share((byte)channel, sessionCallback, ChatSessionListener.class);
     }
- 
+
     /**
      *  Called during connection setup once the server-side services have been initialized
      *  for this connection and any shared objects, etc. should be available.
-     */   
+     */
     @Override
     public void start() {
         log.debug("start()");
         super.start();
     }
-    
+
     private ChatSession getDelegate() {
         // We look up the delegate lazily to make the service more
         // flexible.  This way we don't have to know anything about the
@@ -138,44 +170,66 @@ public class ChatClientService extends AbstractClientService
         if( delegate == null ) {
             // Look it up
             this.delegate = rmiService.getRemoteObject(ChatSession.class);
-            log.debug("delegate:" + delegate);       
+            log.debug("delegate:" + delegate);
             if( delegate == null ) {
                 throw new RuntimeException("No chat session found");
-            }            
+            }
         }
         return delegate;
     }
-    
+
+    protected void addToBacklog( ChatMessage m ) {
+        if( log.isTraceEnabled() ) {
+            log.trace("addToBacklog(" + m + ")");
+        }
+        backlog.add(m);
+        while( backlog.size() > maxBacklogSize ) {
+            backlog.removeFirst();
+        }
+    }
+
     /**
      *  Shared with the server over RMI so that it can notify us about account
      *  related stuff.
      */
     private class ChatSessionCallback implements ChatSessionListener {
- 
-        @Override   
+
+        @Override
         public void playerJoined( int clientId, String playerName ) {
-            if( log.isTraceEnabled() ) {            
+            if( log.isTraceEnabled() ) {
                 log.trace("playerJoined(" + clientId + ", " + playerName + ")");
+            }
+            if( listeners.isEmpty() ) {
+                addToBacklog(ChatMessage.joined(clientId, playerName));
+                return;
             }
             for( ChatSessionListener l : listeners ) {
                 l.playerJoined(clientId, playerName);
             }
         }
- 
-        @Override   
+
+        @Override
         public void newMessage( int clientId, String playerName, String message ) {
-            if( log.isTraceEnabled() ) {            
+            if( log.isTraceEnabled() ) {
                 log.trace("newMessage(" + clientId + ", " + playerName + ", " + message + ")");
+            }
+            if( listeners.isEmpty() ) {
+                addToBacklog(new ChatMessage(clientId, playerName, message));
+                return;
             }
             for( ChatSessionListener l : listeners ) {
                 l.newMessage(clientId, playerName, message);
             }
         }
-    
-        @Override   
+
+        @Override
         public void playerLeft( int clientId, String playerName ) {
-            if( log.isTraceEnabled() ) {            
+            if( log.isTraceEnabled() ) {
                 log.trace("playerLeft(" + clientId + ", " + playerName + ")");
+            }
+            if( listeners.isEmpty() ) {
+                addToBacklog(ChatMessage.left(clientId, playerName));
+                return;
             }
             for( ChatSessionListener l : listeners ) {
                 l.playerLeft(clientId, playerName);
