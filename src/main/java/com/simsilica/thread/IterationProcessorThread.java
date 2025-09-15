@@ -41,6 +41,8 @@ import java.util.concurrent.atomic.*;
 
 import org.slf4j.*;
 
+import com.simsilica.event.*;
+
 /**
  *  Manages an IterationProcessor such that one invocation of this object's
  *  iterate() method will execute one onIterate() of the processor, but on
@@ -126,6 +128,8 @@ public class IterationProcessorThread extends Thread {
             if( go.get() ) {
                 throw new RuntimeException("Unexpected interruption", e);
             }
+        } catch( Exception e ) {
+            EventBus.publish(ErrorEvent.fatalError, new ErrorEvent(e));
         } finally {
             processor.onStop();
         }
