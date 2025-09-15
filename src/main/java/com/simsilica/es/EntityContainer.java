@@ -196,6 +196,10 @@ public abstract class EntityContainer<T> {
         }
     }
 
+    protected EntityCriteria getCriteria() {
+        return criteria;
+    }
+
     protected EntityData getEntityData() {
         return ed;
     }

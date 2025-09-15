@@ -57,6 +57,8 @@ Version 1.9.0 (unreleased)
     be used to refactor the ChatSessionListener.
 * Modified ChatClientService to keep a limited backlog of received messages while no chat listeners
     are active.  The client caller can then decide to play these back as needed.
+* Added EntityContainer.getCriteria()
+
 
 
 Version 1.8.0 (latest)
