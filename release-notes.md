@@ -58,7 +58,8 @@ Version 1.9.0 (unreleased)
 * Modified ChatClientService to keep a limited backlog of received messages while no chat listeners
     are active.  The client caller can then decide to play these back as needed.
 * Added EntityContainer.getCriteria()
-
+* WorkerPool (and thus JobState) will attempt to reprioritize a job if it's executed again
+    while already queued.
 
 
 Version 1.8.0 (latest)

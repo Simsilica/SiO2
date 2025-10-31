@@ -138,6 +138,32 @@ public class WorkerPool {
             JobRunner runner = new JobRunner(job, priority);
             runnerIndex.put(job, runner);
             workers.execute(runner);
+        } else {
+            // We already have this job queued, what state is it in?
+            JobRunner runner = runnerIndex.get(job);
+            if( log.isTraceEnabled() ) {
+                log.trace("existing:" + runner + "  new priority:" + priority);
+            }
+            // There is technically a possible race condition here where if
+            // two different threads execute the same job (or cancel + execute, execute + cancel, etc.)
+            // that might see the runner in the index but not in the queue.
+            // I think this would only be a problem if a separate thread was trying to cancel
+            // this job while we're executing it.  But I think 99% of the use cases, the same
+            // thread will be executing the job as will be canceling it.
+            if( runner.priority != priority ) {
+                long start = System.nanoTime();
+                if( workers.getQueue().remove(runner) ) {
+                    if( log.isTraceEnabled() ) {
+                        log.trace("Requeing:" + job + "  at:" + priority);
+                    }
+                    runner.priority = priority;
+                    workers.execute(runner);
+                }
+                long end = System.nanoTime();
+                if( log.isTraceEnabled() ) {
+                    log.trace(String.format("requeue time: %.03f ms", (end - start) / 1000000.0));
+                }
+            }
         }
     }
 
@@ -316,7 +342,6 @@ public class WorkerPool {
         }
 
         public void run() {
-
             activeCount.incrementAndGet();
 
             // We're running now so remove from the active set
@@ -342,6 +367,11 @@ public class WorkerPool {
                 log.trace("Job runOnWorker() done:" + job);
             }
             toFinish.add(this);
+        }
+
+        @Override
+        public String toString() {
+            return getClass().getSimpleName() + "[jobId:" + jobId + ", priority:" + priority + ", job:" + job + "]";
         }
     }
 }
