@@ -144,6 +144,12 @@ public class WorkerPool {
             if( log.isTraceEnabled() ) {
                 log.trace("existing:" + runner + "  new priority:" + priority);
             }
+            if( runner == null ) {
+                // The job has been started or canceled since we grabbed it from queuedJobs.
+                // Better to be safe and run it again the regular way.
+                execute(job, priority);
+                return;
+            }
             // There is technically a possible race condition here where if
             // two different threads execute the same job (or cancel + execute, execute + cancel, etc.)
             // that might see the runner in the index but not in the queue.
@@ -352,7 +358,16 @@ public class WorkerPool {
                 log.trace("Running background job:" + job + " at priority:" + priority);
             }
             try {
-                job.runOnWorker();
+                // Never ever run a job instance in parallel with itself.
+                // Since we clear the queuedJobs and runnerIndex right at the beginning,
+                // it can happen that a job gets queued again while still running.  A
+                // very attentive worker pool could get a crack at it before the first
+                // execution was complete.  A sign that we need to refactor how jobs
+                // are run to be more action-queue based.  As it stands, running one
+                // long-running job a bunch of times can hang a pool.
+                synchronized(job) {
+                    job.runOnWorker();
+                }
             } catch( Exception e ) {
                 if( shuttingDown && Throwables.getRootCause(e) instanceof InterruptedException ) {
                     log.info("Thread interrupted successfully");
