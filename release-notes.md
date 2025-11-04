@@ -60,6 +60,7 @@ Version 1.9.0 (unreleased)
 * Added EntityContainer.getCriteria()
 * WorkerPool (and thus JobState) will attempt to reprioritize a job if it's executed again
     while already queued.
+* Added a CacheTracker utility class that can be used to track and report on Guava caches.
 
 
 Version 1.8.0 (latest)
