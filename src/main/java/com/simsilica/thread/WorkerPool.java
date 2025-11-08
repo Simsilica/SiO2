@@ -147,6 +147,9 @@ public class WorkerPool {
             if( runner == null ) {
                 // The job has been started or canceled since we grabbed it from queuedJobs.
                 // Better to be safe and run it again the regular way.
+                // Reset the queued jobs since we just added one
+                queuedJobs.remove(job);
+                // And just execute it again
                 execute(job, priority);
                 return;
             }
